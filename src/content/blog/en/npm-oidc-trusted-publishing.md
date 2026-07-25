@@ -3,6 +3,7 @@ title: "npm Trusted Publishing with GitHub Actions: The ENEEDAUTH Trap and How t
 description: "If npm publish --provenance keeps failing with ENEEDAUTH despite having OIDC trusted publishing configured, the problem is probably your npm version."
 pubDate: 2026-07-25
 tags: [npm, ci, oidc, github-actions]
+cover: /npm-oidc-trusted-publishing-cover.webp
 ---
 
 ## The Setup

@@ -2,7 +2,7 @@
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
-  site: 'https://wpmoo.org',
+  site: 'https://cangir.de',
   output: 'static',
   i18n: {
     defaultLocale: 'en',

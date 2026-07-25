@@ -26,22 +26,34 @@ const readingTime = Math.max(1, Math.ceil(wordCount / 200));
 const postUrl = `https://wpmoo.org/blog/${post.id.replace(/^en\//, '').replace(/\/$/, '')}/`;
 ---
 
-<Base title={`${post.data.title} — WPMoo`} description={post.data.description} lang={lang}>
+<Base title={`${post.data.title} — WPMoo`} description={post.data.description} lang={lang} cover={post.data.cover}>
   <Header lang={lang} />
   <main class="moo-doc-layout">
     <article class="moo-doc-page">
       <header class="moo-doc-page-header">
-        <div class="text-body-secondary small">
-          {readingTime} min read &middot;
+        <div class="rounded-4 overflow-hidden bg-body-tertiary d-flex align-items-center justify-content-center" style="min-height: 12rem;">
+          {post.data.cover ? (
+            <img src={post.data.cover} alt={`Cover image for ${post.data.title}`} class="w-100" style="object-fit: cover;" />
+          ) : (
+            <img src="/wpmoo-logo.webp" alt="" width="80" height="80" style="opacity: 0.6;" />
+          )}
+        </div>
+        <div class="moo-doc-meta d-flex align-items-center gap-2">
+          <span>{readingTime} min read</span>
+          <span class="moo-doc-meta-dot">&bull;</span>
           <time datetime={post.data.pubDate.toISOString()}>
             {post.data.pubDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
           </time>
         </div>
         <h1>{post.data.title}</h1>
-        <p class="moo-doc-description">{post.data.description}</p>
-        <div class="rounded-4 bg-body-tertiary d-flex align-items-center justify-content-center" style="min-height: 12rem;">
-          <img src="/wpmoo-logo.webp" alt="" width="80" height="80" style="opacity: 0.6;" />
-        </div>
+        <p class="moo-doc-subtitle">{post.data.description}</p>
+        {post.data.tags.length > 0 && (
+          <div class="d-flex flex-wrap gap-2">
+            {post.data.tags.map((tag: string) => (
+              <span class="badge rounded-pill text-bg-light border">{tag}</span>
+            ))}
+          </div>
+        )}
       </header>
 
       <div class="moo-doc-prose">
@@ -58,20 +70,19 @@ const postUrl = `https://wpmoo.org/blog/${post.id.replace(/^en\//, '').replace(/
             <button type="button" class="btn btn-outline-secondary btn-sm" id="copy-link">Copy link</button>
           </div>
         </div>
-        <div class="card">
-          <div class="card-body d-flex gap-3">
-            <span class="avatar avatar--has-image">
-              <img src="/avatar.jpg" alt="Ahmet Cangir" />
-              <span class="avatar-fallback">AC</span>
-            </span>
-            <div>
-              <div class="fw-semibold" style="font-size: 0.9375rem;">Ahmet Cangir</div>
-              <div class="text-body-secondary small mb-1">Developer &amp; Creator, WPMoo</div>
-              <p class="text-body-secondary mb-0" style="font-size: 0.8125rem; line-height: 1.5;">
-                I build tools for calmer development workflows. WPMoo is my playground —
-                Odoo tooling, Moo UI, and everything in between.
-              </p>
-            </div>
+        <div class="moo-doc-author text-center py-4">
+          <span class="avatar avatar--has-image avatar--borderless mx-auto mb-3" style="width: 4rem; height: 4rem;">
+            <img src="/avatar.jpg" alt="Ahmet Cangir" />
+            <span class="avatar-fallback">AC</span>
+          </span>
+          <div class="fw-semibold mb-1">Ahmet Cangir</div>
+          <p class="text-body-secondary mx-auto mb-2" style="font-size: 0.875rem; max-width: 28rem; line-height: 1.6;">
+            I build tools for calmer development workflows. WPMoo is my playground —
+            Odoo tooling, Moo UI, and everything in between.
+          </p>
+          <div class="d-flex justify-content-center gap-3">
+            <a href="https://github.com/cangir" class="text-body-secondary text-decoration-none small" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://cangir.de" class="text-body-secondary text-decoration-none small" target="_blank" rel="noopener">cangir.de</a>
           </div>
         </div>
       </footer>

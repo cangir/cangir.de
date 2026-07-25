@@ -5,6 +5,14 @@
   --moo-doc-toc-offset: calc(2rem + 5px);
 }
 
+/* Shared content-width container */
+.moo-doc-container {
+  max-width: 72rem;
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+  width: 100%;
+}
+
 /* Frosted sticky header */
 .moo-doc-header {
   position: sticky;
@@ -27,7 +35,6 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  width: 100%;
 }
 
 .moo-doc-header-start {
@@ -136,7 +143,7 @@
 /* Page header block */
 .moo-doc-page-header {
   display: grid;
-  gap: 0.75rem;
+  gap: 1.25rem;
 }
 
 .moo-doc-page-header h1 {
@@ -145,9 +152,9 @@
   margin-bottom: 0;
 }
 
-.moo-doc-page-header .moo-doc-description {
-  font-size: 0.875rem;
-  line-height: 1.5;
+.moo-doc-subtitle {
+  font-size: 1.0625rem;
+  line-height: 1.6;
   color: var(--bs-secondary-color);
   max-width: 42rem;
   margin-bottom: 0;
@@ -156,6 +163,13 @@
 .moo-doc-meta {
   font-size: 0.8125rem;
   color: var(--bs-secondary-color);
+}
+
+.moo-doc-meta-dot {
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--bs-body-color);
+  opacity: 0.4;
 }
 
 /* Content sections */
@@ -465,4 +479,57 @@
 .moo-doc-search-item.active {
   color: var(--bs-body-color);
   background: var(--bs-tertiary-bg);
+}
+
+/* Homepage card icon badge */
+.moo-home-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: var(--bs-black);
+  color: var(--bs-white);
+  border-radius: 0.5rem;
+}
+
+/* Blog post list */
+.moo-doc-post-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.moo-doc-post-item {
+  padding: 1.5rem 0;
+  border-bottom: 1px solid var(--bs-border-color);
+}
+
+.moo-doc-post-item:first-child {
+  padding-top: 0;
+}
+
+.moo-doc-post-item:last-child {
+  border-bottom: 0;
+}
+
+.moo-doc-post-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.4;
+}
+
+.moo-doc-post-title a {
+  color: var(--bs-body-color);
+}
+
+.moo-doc-post-title a:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  text-decoration-color: var(--bs-border-color);
+}
+
+/* Borderless avatar variant */
+.avatar--borderless::after {
+  display: none;
 }

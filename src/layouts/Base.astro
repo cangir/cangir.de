@@ -6,13 +6,18 @@ interface Props {
   title?: string;
   description?: string;
   lang?: string;
+  cover?: string;
 }
 
 const {
-  title = 'WPMoo',
-  description = 'Development blog and homepage, built with Astro and Moo UI.',
+  title = 'cangir.de',
+  description = 'Ahmet Cangir — development blog and project showcase.',
   lang = 'en',
+  cover,
 } = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const ogImage = cover ? new URL(cover, Astro.site) : new URL('/avatar.jpg', Astro.site);
 ---
 
 <!doctype html>
@@ -21,7 +26,17 @@ const {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
-    <link rel="icon" type="image/webp" href="/wpmoo-logo.webp" />
+    <link rel="canonical" href={canonicalURL.href} />
+    <link rel="icon" type="image/jpeg" href="/avatar.jpg" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalURL.href} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage.href} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage.href} />
     <title>{title}</title>
     <script is:inline>
       (() => {
