@@ -1,0 +1,133 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Header from '../../components/layout/Header.astro';
+import Footer from '../../components/layout/Footer.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ id, data }) => {
+    return id.startsWith('en/') && !data.draft;
+  });
+  return posts.map((post) => ({
+    params: { slug: post.id.replace(/^en\//, '').replace(/\/$/, '') },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content, headings } = await render(post);
+const lang = 'en';
+
+const tocItems = headings.filter((h) => h.depth === 2 || h.depth === 3);
+
+const wordCount = (post.body ?? '').split(/\s+/).filter(Boolean).length;
+const readingTime = Math.max(1, Math.ceil(wordCount / 200));
+
+const postUrl = `https://wpmoo.org/blog/${post.id.replace(/^en\//, '').replace(/\/$/, '')}/`;
+---
+
+<Base title={`${post.data.title} — WPMoo`} description={post.data.description} lang={lang}>
+  <Header lang={lang} />
+  <main class="moo-doc-layout">
+    <article class="moo-doc-page">
+      <header class="moo-doc-page-header">
+        <div class="text-body-secondary small">
+          {readingTime} min read &middot;
+          <time datetime={post.data.pubDate.toISOString()}>
+            {post.data.pubDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+          </time>
+        </div>
+        <h1>{post.data.title}</h1>
+        <p class="moo-doc-description">{post.data.description}</p>
+        <div class="rounded-4 bg-body-tertiary d-flex align-items-center justify-content-center" style="min-height: 12rem;">
+          <img src="/wpmoo-logo.webp" alt="" width="80" height="80" style="opacity: 0.6;" />
+        </div>
+      </header>
+
+      <div class="moo-doc-prose">
+        <Content />
+      </div>
+
+      <footer class="moo-doc-post-footer">
+        <hr />
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+          <span class="fw-semibold" style="font-size: 0.875rem;">Share this article</span>
+          <div class="d-flex gap-2">
+            <a href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(postUrl)}&text=${encodeURIComponent(post.data.title)}`} class="btn btn-outline-secondary btn-sm" target="_blank" rel="noopener">Twitter</a>
+            <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(postUrl)}`} class="btn btn-outline-secondary btn-sm" target="_blank" rel="noopener">LinkedIn</a>
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="copy-link">Copy link</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-body d-flex gap-3">
+            <span class="avatar avatar--has-image">
+              <img src="/avatar.jpg" alt="Ahmet Cangir" />
+              <span class="avatar-fallback">AC</span>
+            </span>
+            <div>
+              <div class="fw-semibold" style="font-size: 0.9375rem;">Ahmet Cangir</div>
+              <div class="text-body-secondary small mb-1">Developer &amp; Creator, WPMoo</div>
+              <p class="text-body-secondary mb-0" style="font-size: 0.8125rem; line-height: 1.5;">
+                I build tools for calmer development workflows. WPMoo is my playground —
+                Odoo tooling, Moo UI, and everything in between.
+              </p>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </article>
+
+    {tocItems.length > 0 && (
+      <aside class="moo-doc-toc" aria-label="On this page">
+        <div class="moo-doc-toc__inner">
+          <div class="moo-doc-toc__label">On this page</div>
+          <nav class="nav flex-column">
+            {tocItems.map((item) => (
+              <a
+                class:list={[
+                  'nav-link',
+                  { 'nav-link--nested': item.depth === 3 },
+                ]}
+                href={`#${item.slug}`}
+              >
+                {item.text}
+              </a>
+            ))}
+          </nav>
+        </div>
+      </aside>
+    )}
+  </main>
+  <Footer lang={lang} />
+</Base>
+
+<script>
+  const links = document.querySelectorAll('.moo-doc-toc .nav-link');
+  if (links.length) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const link = document.querySelector(`.moo-doc-toc .nav-link[href="#${entry.target.id}"]`);
+          if (link) {
+            link.classList.toggle('active', entry.isIntersecting);
+          }
+        }
+      },
+      { rootMargin: '-6rem 0px -70% 0px' }
+    );
+    links.forEach((link) => {
+      const id = link.getAttribute('href')?.slice(1);
+      const target = id && document.getElementById(id);
+      if (target) observer.observe(target);
+    });
+  }
+
+  document.getElementById('copy-link')?.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      const btn = document.getElementById('copy-link');
+      if (btn) btn.textContent = 'Copied!';
+      setTimeout(() => { if (btn) btn.textContent = 'Copy link'; }, 2000);
+    } catch (_) {}
+  });
+</script>

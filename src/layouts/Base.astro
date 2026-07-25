@@ -1,0 +1,43 @@
+---
+import '@wpmoo/ui/moo-ui.css';
+import '../styles/doc.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  lang?: string;
+}
+
+const {
+  title = 'WPMoo',
+  description = 'Development blog and homepage, built with Astro and Moo UI.',
+  lang = 'en',
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/webp" href="/wpmoo-logo.webp" />
+    <title>{title}</title>
+    <script is:inline>
+      (() => {
+        try {
+          const theme = localStorage.getItem('wpmoo:theme');
+          if (theme === 'dark' || theme === 'light') {
+            document.documentElement.dataset.bsTheme = theme;
+          }
+        } catch (_) {}
+      })();
+    </script>
+  </head>
+  <body class="d-flex flex-column min-vh-100 bg-body text-body">
+    <slot />
+    <script>
+      import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+    </script>
+  </body>
+</html>
