@@ -3,13 +3,15 @@ import { t } from '../../i18n';
 
 interface Props {
   lang?: string;
+  languageLinks?: Partial<Record<'en' | 'de' | 'tr', string>>;
 }
 
-const { lang = 'en' } = Astro.props;
+const { lang = 'en', languageLinks = {} } = Astro.props;
 const homeHref = lang === 'en' ? '/' : `/${lang}/`;
 const blogHref = lang === 'en' ? '/blog/' : `/${lang}/blog/`;
 const isBlogPath = /^\/(?:de\/|tr\/)?blog(?:\/|$)/.test(Astro.url.pathname);
-const languageHref = (target: string) => {
+const languageHref = (target: 'en' | 'de' | 'tr') => {
+  if (languageLinks[target]) return languageLinks[target];
   if (isBlogPath) return target === 'en' ? '/blog/' : `/${target}/blog/`;
   return target === 'en' ? '/' : `/${target}/`;
 };
@@ -23,6 +25,13 @@ const copy = {
     placeholder: 'Search articles…',
     empty: 'No matching articles.',
     hint: 'Press Enter to open the first result.',
+    theme: 'Toggle theme',
+    github: 'Open GitHub profile',
+    close: 'Close',
+    loading: 'Loading articles…',
+    loadFailed: 'Articles could not be loaded. Check your connection and try again.',
+    retry: 'Try again',
+    results: 'results',
   },
   de: {
     navigation: 'Seitennavigation',
@@ -32,6 +41,13 @@ const copy = {
     placeholder: 'Artikel durchsuchen…',
     empty: 'Keine passenden Artikel.',
     hint: 'Eingabetaste öffnet das erste Ergebnis.',
+    theme: 'Farbschema wechseln',
+    github: 'GitHub-Profil öffnen',
+    close: 'Schließen',
+    loading: 'Artikel werden geladen…',
+    loadFailed: 'Artikel konnten nicht geladen werden. Verbindung prüfen und erneut versuchen.',
+    retry: 'Erneut versuchen',
+    results: 'Ergebnisse',
   },
   tr: {
     navigation: 'Site navigasyonu',
@@ -41,6 +57,13 @@ const copy = {
     placeholder: 'Yazılarda ara…',
     empty: 'Eşleşen yazı bulunamadı.',
     hint: 'İlk sonucu açmak için Enter tuşuna basın.',
+    theme: 'Temayı değiştir',
+    github: 'GitHub profilini aç',
+    close: 'Kapat',
+    loading: 'Yazılar yükleniyor…',
+    loadFailed: 'Yazılar yüklenemedi. Bağlantınızı kontrol edip tekrar deneyin.',
+    retry: 'Tekrar dene',
+    results: 'sonuç',
   },
 } as const;
 
@@ -49,26 +72,26 @@ const languages = [
   { code: 'en', label: 'English' },
   { code: 'de', label: 'Deutsch' },
   { code: 'tr', label: 'Türkçe' },
-];
+] as const;
 ---
 
 <header class="sticky-top border-bottom bg-body" data-site-header>
   <nav class="navbar" aria-label={labels.navigation}>
-    <div class="container site-container d-flex flex-nowrap gap-2">
-      <a class="navbar-brand fs-4 fw-bold me-1" href={homeHref}>CNGR</a>
+    <div class="container site-container d-flex flex-nowrap gap-1 gap-sm-2">
+      <a class="navbar-brand fs-4 fw-bold uppercase-tracked me-1 py-2 py-lg-1" href={homeHref}>CNGR</a>
 
       <div class="nav flex-nowrap me-auto">
-        <a href={blogHref} class="nav-link px-2 text-nowrap">{t(lang, 'nav.blog')}</a>
-        <a href="https://ui.wpmoo.org" class="nav-link px-2 text-nowrap" target="_blank" rel="noopener">
+        <a href={blogHref} class="nav-link px-2 py-3 py-lg-2 text-nowrap">{t(lang, 'nav.blog')}</a>
+        <a href="https://ui.wpmoo.org" class="nav-link d-none d-md-inline-flex px-2 text-nowrap" target="_blank" rel="noopener">
           Moo UI
         </a>
       </div>
 
-      <div class="d-flex align-items-center gap-2">
+      <div class="d-flex align-items-center gap-1 gap-sm-2">
         <div class="dropdown">
           <button
             type="button"
-            class="btn btn-ghost d-inline-flex align-items-center gap-1 px-2 text-uppercase"
+            class="btn btn-ghost btn-lg d-inline-flex align-items-center gap-1 px-2 py-3 py-lg-2 text-uppercase uppercase-tracked"
             id="language-dropdown"
             aria-expanded="false"
             aria-label={labels.language}
@@ -102,7 +125,7 @@ const languages = [
 
         <button
           type="button"
-          class="form-control w-auto d-inline-flex align-items-center justify-content-between gap-3 text-body-secondary fw-normal"
+          class="form-control form-control-sm w-auto site-search-trigger d-inline-flex align-items-center justify-content-between gap-3 text-body-secondary fw-normal"
           aria-label={labels.search}
           data-bs-toggle="modal"
           data-bs-target="#site-search"
@@ -117,7 +140,7 @@ const languages = [
           <span class="d-none d-md-inline-flex align-items-center gap-1" aria-hidden="true"><kbd>⌘</kbd><kbd>K</kbd></span>
         </button>
 
-        <button type="button" class="btn btn-ghost btn-icon" id="theme-toggle" aria-label="Toggle theme">
+        <button type="button" class="btn btn-ghost btn-lg p-3 p-lg-2" id="theme-toggle" aria-label={labels.theme}>
           <svg class="d-none" data-theme-icon="light" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="12" cy="12" r="4"></circle>
             <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
@@ -127,7 +150,7 @@ const languages = [
           </svg>
         </button>
 
-        <a class="btn btn-primary d-inline-flex align-items-center gap-2 px-2 px-sm-3" href="https://github.com/cangir" target="_blank" rel="noopener noreferrer" aria-label="Open GitHub profile">
+        <a class="btn btn-primary btn-lg d-inline-flex align-items-center gap-2 p-3 p-lg-2 px-lg-3" href="https://github.com/cangir" target="_blank" rel="noopener noreferrer" aria-label={labels.github}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3.3-.4 6.8-1.6 6.8-7A5.4 5.4 0 0 0 19.4 4 5 5 0 0 0 19.3.5S18.2.1 15 1.8a13.4 13.4 0 0 0-7 0C4.8.1 3.7.5 3.7.5A5 5 0 0 0 3.6 4a5.4 5.4 0 0 0-1.4 3.7c0 5.4 3.5 6.6 6.8 7A4.8 4.8 0 0 0 8 18v4"></path>
             <path d="M8 19c-3 .9-3-1.5-4-2"></path>
@@ -139,12 +162,19 @@ const languages = [
   </nav>
 </header>
 
-<div class="modal fade" id="site-search" tabindex="-1" aria-labelledby="site-search-title" data-search-locale={lang}>
+<div
+  class="modal fade"
+  id="site-search"
+  tabindex="-1"
+  aria-labelledby="site-search-title"
+  data-search-locale={lang}
+  data-results-label={labels.results}
+>
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">
       <div class="modal-header border-0 pb-0">
         <h2 class="h5 modal-title" id="site-search-title">{labels.search}</h2>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label={labels.close}></button>
       </div>
       <div class="modal-body">
         <label class="visually-hidden" for="site-search-input">{labels.searchArticles}</label>
@@ -157,7 +187,18 @@ const languages = [
           </span>
           <input type="search" class="form-control" placeholder={labels.placeholder} id="site-search-input" autocomplete="off" />
         </div>
-        <div class="list-group list-group-flush mt-3" id="site-search-results"></div>
+        <div data-search-loading hidden>
+          <div class="d-flex align-items-center justify-content-center gap-2 text-body-secondary small py-4">
+            <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+            <span>{labels.loading}</span>
+          </div>
+        </div>
+        <div class="alert alert-secondary mt-3 mb-0" role="alert" data-search-error hidden>
+          <p class="mb-2">{labels.loadFailed}</p>
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-search-retry>{labels.retry}</button>
+        </div>
+        <p class="text-body-secondary small mt-3 mb-0" role="status" aria-live="polite" data-search-status></p>
+        <div class="list-group list-group-flush mt-2" id="site-search-results"></div>
         <p class="text-body-secondary text-center small py-4 mb-0" data-search-empty hidden>{labels.empty}</p>
       </div>
       <div class="modal-footer justify-content-start text-body-secondary small">{labels.hint}</div>
@@ -206,27 +247,54 @@ const languages = [
     }
   });
 
-  let searchIndex = [];
+  interface SearchEntry {
+    title: string;
+    description: string;
+    tags: string[];
+    href: string;
+    locale: string;
+    pubDate: string;
+  }
+
+  let searchIndex: SearchEntry[] = [];
   let searchLoaded = false;
   const searchModal = document.getElementById('site-search');
   const currentLang = searchModal?.dataset.searchLocale ?? 'en';
-  const searchInput = document.getElementById('site-search-input');
+  const resultsLabel = searchModal?.dataset.resultsLabel ?? 'results';
+  const searchInput = document.getElementById('site-search-input') as HTMLInputElement | null;
   const searchResults = document.getElementById('site-search-results');
-  const searchEmpty = document.querySelector('[data-search-empty]');
+  const searchEmpty = document.querySelector<HTMLElement>('[data-search-empty]');
+  const searchLoading = document.querySelector<HTMLElement>('[data-search-loading]');
+  const searchError = document.querySelector<HTMLElement>('[data-search-error]');
+  const searchStatus = document.querySelector<HTMLElement>('[data-search-status]');
+  const searchRetry = document.querySelector<HTMLButtonElement>('[data-search-retry]');
 
-  async function loadIndex() {
-    if (searchLoaded) return;
+  async function loadIndex(force = false) {
+    if (searchLoaded && !force) return true;
+    searchLoading?.removeAttribute('hidden');
+    searchError?.setAttribute('hidden', '');
+    searchEmpty?.setAttribute('hidden', '');
+    if (searchStatus) searchStatus.textContent = '';
+    searchResults?.replaceChildren();
+
     try {
       const response = await fetch('/search-index.json');
-      const allEntries = await response.json();
+      if (!response.ok) throw new Error(`Search index request failed: ${response.status}`);
+      const allEntries = await response.json() as SearchEntry[];
       searchIndex = allEntries.filter((entry) => entry.locale === currentLang);
       searchLoaded = true;
+      return true;
     } catch (_) {
       searchIndex = [];
+      searchLoaded = false;
+      searchError?.removeAttribute('hidden');
+      return false;
+    } finally {
+      searchLoading?.setAttribute('hidden', '');
     }
   }
 
-  function renderResults(query) {
+  function renderResults(query: string) {
     if (!searchResults) return;
     const normalizedQuery = query.toLowerCase().trim();
     const matches = normalizedQuery
@@ -265,19 +333,25 @@ const languages = [
       return link;
     }));
 
+    if (searchStatus) searchStatus.textContent = `${matches.length} ${resultsLabel}`;
     if (searchEmpty) searchEmpty.hidden = matches.length > 0;
   }
 
   searchModal?.addEventListener('shown.bs.modal', async () => {
-    await loadIndex();
-    renderResults('');
     searchInput?.focus();
+    if (await loadIndex()) renderResults(searchInput?.value ?? '');
   });
 
-  searchInput?.addEventListener('input', () => renderResults(searchInput.value));
+  searchRetry?.addEventListener('click', async () => {
+    if (await loadIndex(true)) renderResults(searchInput?.value ?? '');
+  });
+
+  searchInput?.addEventListener('input', () => {
+    if (searchLoaded) renderResults(searchInput.value);
+  });
   searchInput?.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
-      const firstResult = searchResults?.querySelector('a');
+      const firstResult = searchResults?.querySelector<HTMLAnchorElement>('a');
       if (firstResult) window.location.href = firstResult.href;
     }
   });

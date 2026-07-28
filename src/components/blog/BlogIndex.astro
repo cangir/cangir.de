@@ -10,9 +10,10 @@ interface Props {
   totalPages?: number;
   categories?: { category: string; count: number }[];
   activeCategory?: string;
+  alternates?: { lang: string; href: string }[];
 }
 
-const { lang, posts, currentPage = 1, totalPages = 1, categories = [], activeCategory } = Astro.props;
+const { lang, posts, currentPage = 1, totalPages = 1, categories = [], activeCategory, alternates = [] } = Astro.props;
 const copy = {
   en: {
     title: 'Blog',
@@ -24,7 +25,7 @@ const copy = {
     pagination: 'Blog pagination',
     previous: 'Previous',
     next: 'Next',
-    browseByTag: 'Browse by tag',
+    browseByCategory: 'Browse by category',
     allPosts: 'All posts',
   },
   de: {
@@ -77,12 +78,12 @@ const categoryHref = (category: string) => `${basePath}category/${category.toLow
 const pageNumbers = Array.from({ length: totalPages }, (_, index) => index + 1);
 ---
 
-<Base title={`${labels.title} — Ahmet Cangir`} description={labels.description} lang={lang}>
+<Base title={`${labels.title} — Ahmet Cangir`} description={labels.description} lang={lang} alternates={alternates}>
   <Header lang={lang} />
-  <main class="container site-content flex-grow-1 py-5">
+  <main id="main-content" class="container site-content flex-grow-1 py-5" tabindex="-1">
     <header class="mx-auto text-center col-12 col-lg-8 py-lg-3 mb-5">
       <span class="badge border text-body-secondary mb-3">{labels.eyebrow}</span>
-      <h1 class="display-5 fw-semibold mb-3">{labels.title}</h1>
+      <h1 class="display-5 fw-bold mb-3">{labels.title}</h1>
       <p class="lead text-body-secondary mb-0">{labels.description}</p>
     </header>
 
@@ -92,11 +93,11 @@ const pageNumbers = Array.from({ length: totalPages }, (_, index) => index + 1);
           <div class="sticky-top pt-1">
             <h2 class="h6 text-uppercase text-body-secondary mb-3">{labels.browseByCategory}</h2>
             <nav aria-label={labels.browseByCategory}>
-              <ul class="nav flex-lg-column flex-row flex-wrap gap-1">
+              <ul class="nav nav-pills flex-lg-column flex-row flex-wrap gap-2 gap-lg-1">
                 <li class="nav-item">
                   <a
                     href={basePath}
-                    class={`nav-link px-0 py-1${!activeCategory ? ' fw-semibold text-body' : ' text-body-secondary'}`}
+                    class={`nav-link px-3 py-3 px-lg-2 py-lg-1${!activeCategory ? ' active fw-semibold' : ' text-body-secondary'}`}
                     aria-current={!activeCategory ? 'page' : undefined}
                   >
                     {labels.allPosts}
@@ -106,10 +107,10 @@ const pageNumbers = Array.from({ length: totalPages }, (_, index) => index + 1);
                   <li class="nav-item">
                     <a
                       href={categoryHref(category)}
-                      class={`nav-link px-0 py-1${activeCategory === category ? ' fw-semibold text-body' : ' text-body-secondary'}`}
+                      class={`nav-link px-3 py-3 px-lg-2 py-lg-1${activeCategory === category ? ' active fw-semibold' : ' text-body-secondary'}`}
                       aria-current={activeCategory === category ? 'page' : undefined}
                     >
-                      {categoryLabel(category)} <span class="text-body-secondary">({count})</span>
+                      {categoryLabel(category)} <span class={`badge rounded-pill ms-1${activeCategory === category ? ' text-bg-light' : ' text-bg-secondary'}`}>{count}</span>
                     </a>
                   </li>
                 ))}
@@ -167,7 +168,11 @@ const pageNumbers = Array.from({ length: totalPages }, (_, index) => index + 1);
       <nav class="mt-5" aria-label={labels.pagination}>
         <ul class="pagination justify-content-center flex-wrap">
           <li class={`page-item${currentPage === 1 ? ' disabled' : ''}`}>
-            <a class="page-link" href={pageHref(Math.max(1, currentPage - 1))} aria-disabled={currentPage === 1 ? 'true' : undefined}>{labels.previous}</a>
+            {currentPage === 1 ? (
+              <span class="page-link" aria-disabled="true">{labels.previous}</span>
+            ) : (
+              <a class="page-link" href={pageHref(currentPage - 1)}>{labels.previous}</a>
+            )}
           </li>
           {pageNumbers.map((page) => (
             <li class={`page-item${page === currentPage ? ' active' : ''}`}>
@@ -175,7 +180,11 @@ const pageNumbers = Array.from({ length: totalPages }, (_, index) => index + 1);
             </li>
           ))}
           <li class={`page-item${currentPage === totalPages ? ' disabled' : ''}`}>
-            <a class="page-link" href={pageHref(Math.min(totalPages, currentPage + 1))} aria-disabled={currentPage === totalPages ? 'true' : undefined}>{labels.next}</a>
+            {currentPage === totalPages ? (
+              <span class="page-link" aria-disabled="true">{labels.next}</span>
+            ) : (
+              <a class="page-link" href={pageHref(currentPage + 1)}>{labels.next}</a>
+            )}
           </li>
         </ul>
       </nav>

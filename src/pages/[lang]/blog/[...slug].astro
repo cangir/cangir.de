@@ -21,6 +21,8 @@ const copy = {
     writtenBy: 'Geschrieben von',
     continueReading: 'Weiterlesen',
     relatedArticles: 'Ähnliche Artikel',
+    articleTags: 'Artikel-Tags',
+    closeNotification: 'Benachrichtigung schließen',
     bio: 'Ich entwickle Werkzeuge für ruhigere Entwicklungsabläufe – von Odoo-Anwendungen bis zu Bootstrap-nativen Benutzeroberflächen.',
   },
   tr: {
@@ -36,18 +38,20 @@ const copy = {
     writtenBy: 'Yazan',
     continueReading: 'Okumaya devam et',
     relatedArticles: 'İlgili yazılar',
+    articleTags: 'Yazı etiketleri',
+    closeNotification: 'Bildirimi kapat',
     bio: 'Odoo uygulamalarından Bootstrap-native arayüzlere kadar daha sakin geliştirme akışları için araçlar üretiyorum.',
   },
 };
 
 export async function getStaticPaths() {
   const locales = ['de', 'tr'] as const;
-  const posts = await getCollection('blog', ({ id, data }) =>
-    locales.some((locale) => id.startsWith(`${locale}/`)) && !data.draft
-  );
+  const allPosts = await getCollection('blog', ({ data }) => !data.draft);
+  const posts = allPosts.filter(({ id }) => locales.some((locale) => id.startsWith(`${locale}/`)));
 
   return posts.map((post) => {
     const lang = post.id.split('/')[0] as SupportedLocale;
+    const slug = post.id.replace(new RegExp(`^${lang}/`), '').replace(/\/$/, '');
     const postTags = new Set(post.data.tags);
     const relatedPosts = posts
       .filter((candidate) =>
@@ -57,17 +61,26 @@ export async function getStaticPaths() {
       )
       .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
       .slice(0, 3);
+    const languageLinks = Object.fromEntries(
+      (['en', 'de', 'tr'] as const)
+        .filter((locale) => allPosts.some((candidate) => candidate.id.replace(/\/$/, '') === `${locale}/${slug}`))
+        .map((locale) => [locale, locale === 'en' ? `/blog/${slug}/` : `/${locale}/blog/${slug}/`]),
+    );
+    const alternates = Object.entries(languageLinks).map(([locale, href]) => ({ lang: locale, href }));
     return {
-      params: {
-        lang,
-        slug: post.id.replace(new RegExp(`^${lang}/`), '').replace(/\/$/, ''),
-      },
-      props: { post, lang, relatedPosts },
+      params: { lang, slug },
+      props: { post, lang, relatedPosts, languageLinks, alternates },
     };
   });
 }
 
-const { post, lang, relatedPosts } = Astro.props as { post: any; lang: SupportedLocale; relatedPosts: any[] };
+const { post, lang, relatedPosts, languageLinks, alternates } = Astro.props as {
+  post: any;
+  lang: SupportedLocale;
+  relatedPosts: any[];
+  languageLinks: Partial<Record<'en' | 'de' | 'tr', string>>;
+  alternates: { lang: string; href: string }[];
+};
 const { Content, headings } = await render(post);
 const labels = copy[lang];
 const tocItems = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
@@ -78,9 +91,9 @@ const postUrl = `https://cangir.de/${lang}/blog/${slug}/`;
 const dateLocale = lang === 'tr' ? 'tr-TR' : 'de-DE';
 ---
 
-<Base title={`${post.data.title} — Ahmet Cangir`} description={post.data.description} lang={lang} cover={post.data.cover}>
-  <Header lang={lang} />
-  <main class="container site-content flex-grow-1 py-4 py-lg-5">
+<Base title={`${post.data.title} — Ahmet Cangir`} description={post.data.description} lang={lang} cover={post.data.cover} pageType="article" publishedTime={post.data.pubDate.toISOString()} alternates={alternates}>
+  <Header lang={lang} languageLinks={languageLinks} />
+  <main id="main-content" class="container site-content flex-grow-1 py-4 py-lg-5" tabindex="-1">
     <a href={`/${lang}/blog/`} class="d-inline-flex align-items-center gap-2 small text-body-secondary text-decoration-none mb-5">
       <span aria-hidden="true">←</span> {labels.allArticles}
     </a>
@@ -100,10 +113,12 @@ const dateLocale = lang === 'tr' ? 'tr-TR' : 'de-DE';
             <span>{readingTime} {labels.minuteRead}</span>
           </div>
 
-          <h1 class="display-6 fw-semibold lh-sm mb-4">{post.data.title}</h1>
-          <p class="lead text-body-secondary mb-4">{post.data.description}</p>
+          <h1 class="display-6 fw-bold lh-sm mb-4">{post.data.title}</h1>
+          <div class="row">
+            <p class="lead text-body-secondary mb-4 col-12 col-lg-8">{post.data.description}</p>
+          </div>
 
-          <div class="d-flex flex-wrap gap-2" aria-label="Tags">
+          <div class="d-flex flex-wrap gap-2" aria-label={labels.articleTags}>
             {post.data.tags.map((tag: string) => <span class="badge border text-body-secondary">{tag}</span>)}
           </div>
     </header>
@@ -130,7 +145,7 @@ const dateLocale = lang === 'tr' ? 'tr-TR' : 'de-DE';
 
     <div class="row g-0 g-lg-5">
       <article class="col-12 col-lg-8">
-        <div class="fs-5 lh-base">
+        <div class="fs-5 lh-base article-body">
           <Content />
         </div>
 
@@ -171,7 +186,7 @@ const dateLocale = lang === 'tr' ? 'tr-TR' : 'de-DE';
 
           <div class="border-top py-5">
             <div class="d-flex flex-column flex-sm-row align-items-center text-center text-sm-start gap-4">
-              <img src="/avatar.jpg" alt="Ahmet Cangir" width="72" height="72" class="rounded-circle border flex-shrink-0" />
+              <img src="/avatar.webp" alt="Ahmet Cangir" width="72" height="72" class="rounded-circle border flex-shrink-0" />
               <div>
                 <p class="text-body-secondary small text-uppercase fw-semibold mb-1">{labels.writtenBy}</p>
                 <h2 class="h4 mb-2">Ahmet Cangir</h2>
@@ -207,7 +222,7 @@ const dateLocale = lang === 'tr' ? 'tr-TR' : 'de-DE';
     <div class="toast" id="copy-toast" role="status" aria-live="polite" aria-atomic="true" data-success-message={labels.copied} data-code-success-message={labels.codeCopied} data-copy-code-label={labels.copyCode} data-failed-message={labels.failed}>
       <div class="toast-body d-flex align-items-center gap-3">
         <span class="me-auto" data-toast-message>{labels.copied}</span>
-        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label={labels.closeNotification}></button>
       </div>
     </div>
   </div>
@@ -248,6 +263,8 @@ const dateLocale = lang === 'tr' ? 'tr-TR' : 'de-DE';
       link.classList.toggle('text-body', isActive);
       link.classList.toggle('text-body-secondary', !isActive);
       link.classList.toggle('fw-semibold', isActive);
+      if (isActive) link.setAttribute('aria-current', 'location');
+      else link.removeAttribute('aria-current');
     });
   };
 
@@ -283,11 +300,11 @@ const dateLocale = lang === 'tr' ? 'tr-TR' : 'de-DE';
   document.querySelectorAll<HTMLPreElement>('.fs-5 pre[data-language]').forEach((pre) => {
     const language = pre.dataset.language ?? 'code';
     const wrapper = document.createElement('div');
-    wrapper.className = 'card overflow-hidden mb-4';
+    wrapper.className = 'card p-0 gap-0 overflow-hidden mb-4';
     const toolbar = document.createElement('div');
-    toolbar.className = 'card-header d-flex align-items-center justify-content-between gap-3 py-2';
+    toolbar.className = 'card-header d-flex flex-row align-items-center justify-content-between gap-3 py-2';
     const label = document.createElement('span');
-    label.className = 'badge border text-body-secondary text-uppercase';
+    label.className = 'badge border text-body-secondary text-uppercase uppercase-tracked';
     label.textContent = language;
     const button = document.createElement('button');
     button.type = 'button';
@@ -297,7 +314,7 @@ const dateLocale = lang === 'tr' ? 'tr-TR' : 'de-DE';
     toolbar.append(label, button);
     pre.parentNode?.insertBefore(wrapper, pre);
     wrapper.append(toolbar, pre);
-    pre.classList.add('card-body', 'm-0', 'p-3', 'rounded-0');
+    pre.classList.add('card-body', 'm-0', 'p-3', 'rounded-0', 'fs-6', 'scroll-fade-x', 'no-scrollbar');
     button.addEventListener('click', async () => {
       if (!toastElement || !toastMessage || !copyToast) return;
       try {

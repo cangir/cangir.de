@@ -6,6 +6,11 @@ const PAGE_SIZE = 6;
 const posts = await getLangPosts('en');
 const categories = getCategorySummary(posts);
 const totalPages = Math.max(1, Math.ceil(posts.length / PAGE_SIZE));
+const alternates = [
+  { lang: 'en', href: '/blog/' },
+  { lang: 'de', href: '/de/blog/' },
+  { lang: 'tr', href: '/tr/blog/' },
+];
 ---
 
-<BlogIndex lang="en" posts={posts.slice(0, PAGE_SIZE)} currentPage={1} totalPages={totalPages} categories={categories} />
+<BlogIndex lang="en" posts={posts.slice(0, PAGE_SIZE)} currentPage={1} totalPages={totalPages} categories={categories} alternates={alternates} />

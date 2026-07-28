@@ -26,10 +26,21 @@ $font-size-base: 0.875rem;
 
 $font-family-sans-serif: list.join('Geist Sans', $font-family-sans-serif, $separator: comma);
 
+// Geist Mono is Geist Sans' own monospace sibling (same @fontsource vendor
+// family, latin-400 imported in Base.astro) — pairing it with the code-block
+// font consumption token makes the site's two typefaces (display/body +
+// code) read as one deliberate system instead of Geist Sans everywhere and
+// the browser's arbitrary system-monospace stack left over in code blocks.
+// Bootstrap's own $font-family-monospace fallback stack is kept after it, so
+// a missing/slow-loading Geist Mono still falls back to a real monospace
+// font, not sans-serif.
+$font-family-monospace: list.join('Geist Mono', $font-family-monospace, $separator: comma);
+
 // :root matches <html> regardless of the data-bs-theme attribute, so one
 // declaration covers both the light and dark theme variants Moo UI ships.
 :root {
   --#{$prefix}font-sans-serif: #{$font-family-sans-serif};
+  --#{$prefix}font-monospace: #{$font-family-monospace};
 }
 
 // Bootstrap's own .nav-link reads --bs-nav-link-font-size (_nav.scss), but
@@ -130,6 +141,46 @@ body.page-grid-bg::before {
   }
 }
 
+// Bootstrap's .text-uppercase utility has no companion letter-spacing —
+// small uppercase text (wordmark, language code, code-block language
+// badges) reads cramped without slight positive tracking. A named class
+// paired alongside .text-uppercase (not a blanket .text-uppercase override,
+// which would also touch any future/incidental use), following the same
+// pairing pattern as .divider-dashed + border-bottom/border-start.
+.uppercase-tracked {
+  letter-spacing: 0.04em;
+}
+
+// ui.wpmoo.org's own catalog search trigger (.moo-catalog__search-trigger,
+// projects/ui/html/scss/catalog/_shell.scss) grows through fixed widths per
+// breakpoint (10rem / 13rem / 16rem) instead of shrinking to its label's
+// content width. cangir.de's search trigger already reuses the same
+// Bootstrap .form-control shape/border/background — only the width
+// progression was missing (Bootstrap's own .w-auto leaves it content-sized).
+// Only the three numeric width values are taken as inspiration; no
+// moo-catalog__* class or catalog.css rule is referenced or copied.
+// !important matches Bootstrap's own .w-auto utility (width: auto
+// !important) already present on this element for the below-sm icon-only
+// state — without it, .w-auto's !important would win over these plain
+// declarations at every breakpoint.
+@include media-breakpoint-up(sm) {
+  .site-search-trigger {
+    width: 10rem !important;
+  }
+}
+
+@include media-breakpoint-up(lg) {
+  .site-search-trigger {
+    width: 13rem !important;
+  }
+}
+
+@include media-breakpoint-up(xxl) {
+  .site-search-trigger {
+    width: 16rem !important;
+  }
+}
+
 // Bootstrap ships border color/width utilities (border-bottom,
 // border-secondary-subtle, ...) but no border *style* utility — there is
 // no border-dashed class. `border-style`/`border-color` are CSS shorthand
@@ -154,4 +205,42 @@ body.page-grid-bg::before {
 .divider-dashed.border-start {
   border-left-style: dashed !important;
   border-left-color: color-mix(in srgb, var(--#{$prefix}secondary-color) 20%, transparent) !important;
+}
+
+// Markdown-rendered prose links (.article-body a) read var(--bs-link-color),
+// which Moo UI's dark theme sets to a muted #747474 (moo-ui.css) — against
+// the dark body background that is roughly 3.4:1, under WCAG AA's 4.5:1
+// text contrast minimum. Markdown output has no way to attach a class to
+// an individual <a> per post, so this reproduces Bootstrap's own
+// .link-body-emphasis utility rule (same --bs-emphasis-color-rgb token,
+// same declaration shape) scoped to .article-body a only — chrome links
+// (nav, footer, buttons) keep the existing --bs-link-color untouched.
+// --bs-emphasis-color is already themed per light/dark by Moo UI itself,
+// so this re-themes automatically with no second declaration.
+.article-body a {
+  color: rgba(var(--#{$prefix}emphasis-color-rgb), var(--#{$prefix}link-opacity, 1)) !important;
+}
+
+.article-body a:hover,
+.article-body a:focus {
+  color: rgba(var(--#{$prefix}emphasis-color-rgb), var(--#{$prefix}link-opacity, 0.75)) !important;
+}
+
+// Automatic section rhythm for article body copy. Markdown headings render
+// with Bootstrap Reboot's own margin-top: 0, so a new h2/h3 section start
+// carried the exact same 16px gap as two paragraphs in the same section
+// (p's margin-bottom) — the only "new section" signal was heading size, not
+// spacing. .article-body marks the rendered Markdown wrapper (both blog
+// templates); h2 gets a bigger jump than h3 so the rhythm itself carries
+// the section/subsection hierarchy, not only font size. :not(:first-child)
+// keeps the very first heading flush under the article header/divider
+// instead of adding a redundant gap already provided by the header's own
+// spacing. Applies automatically to every current and future post — no
+// per-article manual spacing needed.
+.article-body h2:not(:first-child) {
+  margin-top: 4rem;
+}
+
+.article-body h3:not(:first-child) {
+  margin-top: 2rem;
 }
