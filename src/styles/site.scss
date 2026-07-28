@@ -258,3 +258,16 @@ body.page-grid-bg::before {
 .article-body h3:not(:first-child) {
   margin-top: 2rem;
 }
+
+// Running prose currently stretches to the full .article-body column
+// (~76 characters per line at the lg+ two-column width), past the ~45-75ch
+// range typography guidance treats as comfortable reading measure. Code
+// blocks render as their own DIV wrapper (Astro's code-fence renderer, not
+// a <p>), so capping only text-flow elements here leaves code, images, and
+// tables at the full column width where extra room actually helps.
+.article-body > p,
+.article-body > ul,
+.article-body > ol,
+.article-body > blockquote {
+  max-width: 55ch;
+}
