@@ -6,58 +6,131 @@ interface Props {
 }
 
 const { lang = 'en' } = Astro.props;
+const homeHref = lang === 'en' ? '/' : `/${lang}/`;
+const blogHref = lang === 'en' ? '/blog/' : `/${lang}/blog/`;
+const isBlogPath = /^\/(?:de\/|tr\/)?blog(?:\/|$)/.test(Astro.url.pathname);
+const languageHref = (target: string) => {
+  if (isBlogPath) return target === 'en' ? '/blog/' : `/${target}/blog/`;
+  return target === 'en' ? '/' : `/${target}/`;
+};
+
+const copy = {
+  en: {
+    navigation: 'Site navigation',
+    language: 'Change language',
+    search: 'Search',
+    searchArticles: 'Search articles',
+    placeholder: 'Search articles…',
+    empty: 'No matching articles.',
+    hint: 'Press Enter to open the first result.',
+  },
+  de: {
+    navigation: 'Seitennavigation',
+    language: 'Sprache ändern',
+    search: 'Suchen',
+    searchArticles: 'Artikel durchsuchen',
+    placeholder: 'Artikel durchsuchen…',
+    empty: 'Keine passenden Artikel.',
+    hint: 'Eingabetaste öffnet das erste Ergebnis.',
+  },
+  tr: {
+    navigation: 'Site navigasyonu',
+    language: 'Dili değiştir',
+    search: 'Ara',
+    searchArticles: 'Yazılarda ara',
+    placeholder: 'Yazılarda ara…',
+    empty: 'Eşleşen yazı bulunamadı.',
+    hint: 'İlk sonucu açmak için Enter tuşuna basın.',
+  },
+} as const;
+
+const labels = copy[lang as keyof typeof copy] ?? copy.en;
+const languages = [
+  { code: 'en', label: 'English' },
+  { code: 'de', label: 'Deutsch' },
+  { code: 'tr', label: 'Türkçe' },
+];
 ---
 
-<header class="moo-doc-header">
-  <nav class="navbar" aria-label="Site navigation">
-    <div class="moo-doc-container moo-doc-navbar-inner">
-      <div class="moo-doc-header-start">
-        <div class="nav moo-doc-header-nav d-flex">
-          <a href={lang === 'en' ? '/' : `/${lang}/`} class="nav-link">
-            Home
-          </a>
-          <a href={lang === 'en' ? '/blog/' : `/${lang}/blog/`} class="nav-link">
-            {t(lang, 'nav.blog')}
-          </a>
-          <a href="https://ui.wpmoo.org" class="nav-link" target="_blank" rel="noopener">
-            Moo UI
-          </a>
-        </div>
+<header class="sticky-top border-bottom bg-body" data-site-header>
+  <nav class="navbar" aria-label={labels.navigation}>
+    <div class="container site-container d-flex flex-nowrap gap-2">
+      <a class="navbar-brand fs-4 fw-bold me-1" href={homeHref}>CNGR</a>
+
+      <div class="nav flex-nowrap me-auto">
+        <a href={blogHref} class="nav-link px-2 text-nowrap">{t(lang, 'nav.blog')}</a>
+        <a href="https://ui.wpmoo.org" class="nav-link px-2 text-nowrap" target="_blank" rel="noopener">
+          Moo UI
+        </a>
       </div>
 
-      <div class="moo-doc-header-actions">
+      <div class="d-flex align-items-center gap-2">
+        <div class="dropdown">
+          <button
+            type="button"
+            class="btn btn-ghost d-inline-flex align-items-center gap-1 px-2 text-uppercase"
+            id="language-dropdown"
+            aria-expanded="false"
+            aria-label={labels.language}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M2 12h20M12 2a15.3 15.3 0 0 1 0 20M12 2a15.3 15.3 0 0 0 0 20"></path>
+            </svg>
+            <span class="small fw-semibold">{lang}</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="language-dropdown">
+            {languages.map((language) => (
+              <li>
+                <a
+                  class={`dropdown-item d-flex align-items-center justify-content-between gap-3${language.code === lang ? ' active' : ''}`}
+                  href={languageHref(language.code)}
+                  lang={language.code}
+                  aria-current={language.code === lang ? 'page' : undefined}
+                >
+                  <span>{language.label}</span>
+                  {language.code === lang && (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="m20 6-11 11-5-5"></path>
+                    </svg>
+                  )}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+
         <button
           type="button"
-          class="btn btn-ghost moo-doc-search-trigger"
-          aria-label="Search"
+          class="form-control w-auto d-inline-flex align-items-center justify-content-between gap-3 text-body-secondary fw-normal"
+          aria-label={labels.search}
           data-bs-toggle="modal"
-          data-bs-target="#doc-search"
+          data-bs-target="#site-search"
         >
-          <span class="moo-doc-search-trigger-lead">
-            <svg data-icon="inline-start" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21l-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
-            <span class="d-none d-sm-inline">Search</span>
+          <span class="d-inline-flex align-items-center gap-2">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            <span class="d-none d-sm-inline">{labels.search}</span>
           </span>
-          <span class="moo-doc-search-trigger-shortcut d-none d-md-inline-flex"><kbd>⌘</kbd><kbd>K</kbd></span>
+          <span class="d-none d-md-inline-flex align-items-center gap-1" aria-hidden="true"><kbd>⌘</kbd><kbd>K</kbd></span>
         </button>
-        <button
-          type="button"
-          class="btn btn-ghost btn-icon moo-doc-theme-toggle"
-          id="theme-toggle"
-          aria-label="Toggle theme"
-        >
-          <svg class="d-none" data-theme-icon="light" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
-          <svg class="d-none" data-theme-icon="dark" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+
+        <button type="button" class="btn btn-ghost btn-icon" id="theme-toggle" aria-label="Toggle theme">
+          <svg class="d-none" data-theme-icon="light" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+          </svg>
+          <svg class="d-none" data-theme-icon="dark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+          </svg>
         </button>
-        <a
-          class="btn btn-primary moo-doc-github-link"
-          role="button"
-          href="https://github.com/cangir"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Open GitHub profile"
-        >
-          <svg viewBox="0 0 438.549 438.549" fill="currentColor" aria-hidden="true">
-            <path d="M409.132 114.573c-19.608-33.596-46.205-60.194-79.798-79.8-33.598-19.607-70.277-29.408-110.063-29.408-39.781 0-76.472 9.804-110.063 29.408-33.596 19.605-60.192 46.204-79.8 79.8C9.803 148.168 0 184.854 0 224.63c0 47.78 13.94 90.745 41.827 128.906 27.884 38.164 63.906 64.572 108.063 79.227 5.14.954 8.945.283 11.419-1.996 2.475-2.282 3.711-5.14 3.711-8.562 0-.571-.049-5.708-.144-15.417a2549.81 2549.81 0 01-.144-25.406l-6.567 1.136c-4.187.767-9.469 1.092-15.846 1-6.374-.089-12.991-.757-19.842-1.999-6.854-1.231-13.229-4.086-19.13-8.559-5.898-4.473-10.085-10.328-12.56-17.556l-2.855-6.57c-1.903-4.374-4.899-9.233-8.992-14.559-4.093-5.331-8.232-8.945-12.419-10.848l-1.999-1.431c-1.332-.951-2.568-2.098-3.711-3.429-1.142-1.331-1.997-2.663-2.568-3.997-.572-1.335-.098-2.43 1.427-3.289 1.525-.859 4.281-1.276 8.28-1.276l5.708.853c3.807.763 8.516 3.042 14.133 6.851 5.614 3.806 10.229 8.754 13.846 14.842 4.38 7.806 9.657 13.754 15.846 17.847 6.184 4.093 12.419 6.136 18.699 6.136 6.28 0 11.704-.476 16.274-1.423 4.565-.952 8.848-2.383 12.847-4.285 1.713-12.758 6.377-22.559 13.988-29.41-10.848-1.14-20.601-2.857-29.264-5.14-8.658-2.286-17.605-5.996-26.835-11.14-9.235-5.137-16.896-11.516-22.985-19.126-6.09-7.614-11.088-17.61-14.987-29.979-3.901-12.374-5.852-26.648-5.852-42.826 0-23.035 7.52-42.637 22.557-58.817-7.044-17.318-6.379-36.732 1.997-58.24 5.52-1.715 13.706-.428 24.554 3.853 10.85 4.283 18.794 7.952 23.84 10.994 5.046 3.041 9.089 5.618 12.135 7.708 17.705-4.947 35.976-7.421 54.818-7.421s37.117 2.474 54.823 7.421l10.849-6.849c7.419-4.57 16.18-8.758 26.262-12.565 10.088-3.805 17.802-4.853 23.134-3.138 8.562 21.509 9.325 40.922 2.279 58.24 15.036 16.18 22.559 35.787 22.559 58.817 0 16.178-1.958 30.497-5.853 42.966-3.9 12.471-8.941 22.457-15.125 29.979-6.191 7.521-13.901 13.85-23.131 18.986-9.232 5.14-18.182 8.85-26.84 11.136-8.662 2.286-18.415 4.004-29.263 5.146 9.894 8.562 14.842 22.077 14.842 40.539v60.237c0 3.422 1.19 6.279 3.572 8.562 2.379 2.279 6.136 2.95 11.276 1.995 44.163-14.653 80.185-41.062 108.068-79.226 27.88-38.161 41.825-81.126 41.825-128.906-.01-39.771-9.818-76.454-29.414-110.049z"/>
+
+        <a class="btn btn-primary d-inline-flex align-items-center gap-2 px-2 px-sm-3" href="https://github.com/cangir" target="_blank" rel="noopener noreferrer" aria-label="Open GitHub profile">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3.3-.4 6.8-1.6 6.8-7A5.4 5.4 0 0 0 19.4 4 5 5 0 0 0 19.3.5S18.2.1 15 1.8a13.4 13.4 0 0 0-7 0C4.8.1 3.7.5 3.7.5A5 5 0 0 0 3.6 4a5.4 5.4 0 0 0-1.4 3.7c0 5.4 3.5 6.6 6.8 7A4.8 4.8 0 0 0 8 18v4"></path>
+            <path d="M8 19c-3 .9-3-1.5-4-2"></path>
           </svg>
           <span class="d-none d-lg-inline">cangir</span>
         </a>
@@ -66,119 +139,146 @@ const { lang = 'en' } = Astro.props;
   </nav>
 </header>
 
-<div class="modal fade moo-doc-search" id="doc-search" tabindex="-1" aria-labelledby="doc-search-title">
-  <div class="modal-dialog moo-doc-search-dialog">
-    <div class="modal-content moo-doc-search-content">
-      <div class="modal-header moo-doc-search-header">
-        <h2 class="visually-hidden" id="doc-search-title">Search</h2>
-        <div class="input-group moo-doc-search-input-group">
-          <span class="input-group-text">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21l-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+<div class="modal fade" id="site-search" tabindex="-1" aria-labelledby="site-search-title" data-search-locale={lang}>
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <h2 class="h5 modal-title" id="site-search-title">{labels.search}</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <label class="visually-hidden" for="site-search-input">{labels.searchArticles}</label>
+        <div class="input-group">
+          <span class="input-group-text" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
           </span>
-          <input type="search" class="form-control" placeholder="Search..." aria-label="Search" id="doc-search-input" autocomplete="off" />
+          <input type="search" class="form-control" placeholder={labels.placeholder} id="site-search-input" autocomplete="off" />
         </div>
+        <div class="list-group list-group-flush mt-3" id="site-search-results"></div>
+        <p class="text-body-secondary text-center small py-4 mb-0" data-search-empty hidden>{labels.empty}</p>
       </div>
-      <div class="modal-body moo-doc-search-body">
-        <div class="list-group list-group-flush" id="doc-search-results"></div>
-        <p class="moo-doc-search-empty text-body-secondary small" hidden>No matching pages.</p>
-      </div>
-      <div class="modal-footer moo-doc-search-footer">
-        <kbd>↵</kbd>
-        <span>Go to Page</span>
-      </div>
+      <div class="modal-footer justify-content-start text-body-secondary small">{labels.hint}</div>
     </div>
   </div>
 </div>
 
 <script>
-  import { Modal } from 'bootstrap';
+  import { Dropdown, Modal } from 'bootstrap';
 
-  function updateIcon() {
+  const siteHeader = document.querySelector<HTMLElement>('[data-site-header]');
+  if (siteHeader) {
+    const syncSiteHeaderHeight = () => {
+      document.documentElement.style.setProperty('--site-header-height', `${siteHeader.getBoundingClientRect().height}px`);
+    };
+    new ResizeObserver(syncSiteHeaderHeight).observe(siteHeader);
+    syncSiteHeaderHeight();
+  }
+
+  const languageTrigger = document.getElementById('language-dropdown');
+  if (languageTrigger) {
+    const languageDropdown = Dropdown.getOrCreateInstance(languageTrigger);
+    languageTrigger.addEventListener('click', () => languageDropdown.toggle());
+  }
+
+  function updateThemeIcon() {
     const isDark = document.documentElement.dataset.bsTheme === 'dark';
     document.querySelector('[data-theme-icon="light"]')?.classList.toggle('d-none', !isDark);
     document.querySelector('[data-theme-icon="dark"]')?.classList.toggle('d-none', isDark);
   }
 
   document.getElementById('theme-toggle')?.addEventListener('click', () => {
-    const isDark = document.documentElement.dataset.bsTheme === 'dark';
-    const next = isDark ? 'light' : 'dark';
+    const next = document.documentElement.dataset.bsTheme === 'dark' ? 'light' : 'dark';
     document.documentElement.dataset.bsTheme = next;
-    localStorage.setItem('wpmoo:theme', next);
-    updateIcon();
+    localStorage.setItem('cangir:theme', next);
+    updateThemeIcon();
   });
 
-  updateIcon();
+  updateThemeIcon();
 
-  document.addEventListener('keydown', (e) => {
-    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-      e.preventDefault();
-      const modal = document.getElementById('doc-search');
-      if (modal) {
-        Modal.getOrCreateInstance(modal).toggle();
-      }
+  document.addEventListener('keydown', (event) => {
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+      event.preventDefault();
+      const modal = document.getElementById('site-search');
+      if (modal) Modal.getOrCreateInstance(modal).toggle();
     }
   });
 
-  interface SearchEntry {
-    title: string;
-    description: string;
-    href: string;
-    tags: string[];
-  }
-
-  let searchIndex: SearchEntry[] = [];
+  let searchIndex = [];
   let searchLoaded = false;
-
-  const searchModal = document.getElementById('doc-search');
-  const searchInput = document.getElementById('doc-search-input') as HTMLInputElement | null;
-  const searchResults = document.getElementById('doc-search-results');
-  const searchEmpty = document.querySelector('.moo-doc-search-empty') as HTMLElement | null;
+  const searchModal = document.getElementById('site-search');
+  const currentLang = searchModal?.dataset.searchLocale ?? 'en';
+  const searchInput = document.getElementById('site-search-input');
+  const searchResults = document.getElementById('site-search-results');
+  const searchEmpty = document.querySelector('[data-search-empty]');
 
   async function loadIndex() {
     if (searchLoaded) return;
     try {
-      const res = await fetch('/search-index.json');
-      searchIndex = await res.json();
+      const response = await fetch('/search-index.json');
+      const allEntries = await response.json();
+      searchIndex = allEntries.filter((entry) => entry.locale === currentLang);
       searchLoaded = true;
-    } catch (_) {}
+    } catch (_) {
+      searchIndex = [];
+    }
   }
 
-  function renderResults(query: string) {
+  function renderResults(query) {
     if (!searchResults) return;
-    const q = query.toLowerCase().trim();
-    const matches = q
-      ? searchIndex.filter(
-          (e) =>
-            e.title.toLowerCase().includes(q) ||
-            e.description.toLowerCase().includes(q) ||
-            e.tags.some((t) => t.toLowerCase().includes(q))
+    const normalizedQuery = query.toLowerCase().trim();
+    const matches = normalizedQuery
+      ? searchIndex.filter((entry) =>
+          entry.title.toLowerCase().includes(normalizedQuery) ||
+          entry.description.toLowerCase().includes(normalizedQuery) ||
+          entry.tags.some((tag) => tag.toLowerCase().includes(normalizedQuery))
         )
       : searchIndex;
 
-    searchResults.innerHTML = matches
-      .map(
-        (e) =>
-          `<a class="moo-doc-search-item" href="${e.href}"><span>${e.title}</span></a>`
-      )
-      .join('');
+    searchResults.replaceChildren(...matches.map((entry) => {
+      const link = document.createElement('a');
+      link.className = 'list-group-item list-group-item-action py-3';
+      link.href = entry.href;
+
+      const meta = document.createElement('span');
+      meta.className = 'd-flex flex-wrap gap-2 text-body-secondary small mb-1';
+      const date = document.createElement('time');
+      date.dateTime = entry.pubDate;
+      date.textContent = new Intl.DateTimeFormat(currentLang, { dateStyle: 'medium' }).format(new Date(entry.pubDate));
+      const locale = document.createElement('span');
+      locale.className = 'badge border text-body-secondary text-uppercase';
+      locale.textContent = entry.locale;
+      meta.append(date, locale);
+
+      const title = document.createElement('span');
+      title.className = 'fw-semibold d-block';
+      title.textContent = entry.title;
+      const description = document.createElement('span');
+      description.className = 'small text-body-secondary d-block mt-1';
+      description.textContent = entry.description;
+      const tags = document.createElement('span');
+      tags.className = 'small text-body-secondary d-block mt-2';
+      tags.textContent = entry.tags.join(' · ');
+      link.append(meta, title, description, tags);
+      return link;
+    }));
 
     if (searchEmpty) searchEmpty.hidden = matches.length > 0;
   }
 
   searchModal?.addEventListener('shown.bs.modal', async () => {
-    searchInput?.focus();
     await loadIndex();
     renderResults('');
+    searchInput?.focus();
   });
 
-  searchInput?.addEventListener('input', () => {
-    renderResults(searchInput.value);
-  });
-
-  searchInput?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      const first = searchResults?.querySelector('.moo-doc-search-item') as HTMLAnchorElement | null;
-      if (first) window.location.href = first.href;
+  searchInput?.addEventListener('input', () => renderResults(searchInput.value));
+  searchInput?.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      const firstResult = searchResults?.querySelector('a');
+      if (firstResult) window.location.href = firstResult.href;
     }
   });
 </script>

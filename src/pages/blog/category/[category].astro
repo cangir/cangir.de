@@ -1,0 +1,17 @@
+---
+import BlogIndex from '../../../components/blog/BlogIndex.astro';
+import { getLangPosts, getCategorySummary, postsByCategory } from '../../../lib/blog';
+
+export async function getStaticPaths() {
+  const posts = await getLangPosts('en');
+  const categories = getCategorySummary(posts);
+  return categories.map(({ category }) => ({
+    params: { category: category.toLowerCase() },
+    props: { posts: postsByCategory(posts, category), categories, activeCategory: category },
+  }));
+}
+
+const { posts, categories, activeCategory } = Astro.props;
+---
+
+<BlogIndex lang="en" posts={posts} categories={categories} activeCategory={activeCategory} />

@@ -1,0 +1,185 @@
+---
+import Base from '../../layouts/Base.astro';
+import Header from '../layout/Header.astro';
+import Footer from '../layout/Footer.astro';
+
+interface Props {
+  lang: 'en' | 'de' | 'tr';
+  posts: any[];
+  currentPage?: number;
+  totalPages?: number;
+  categories?: { category: string; count: number }[];
+  activeCategory?: string;
+}
+
+const { lang, posts, currentPage = 1, totalPages = 1, categories = [], activeCategory } = Astro.props;
+const copy = {
+  en: {
+    title: 'Blog',
+    description: 'Development notes from real projects, open-source work, and the ideas behind Moo UI.',
+    eyebrow: 'Development notes',
+    empty: 'No articles yet.',
+    latest: 'Latest',
+    readingTime: 'min read',
+    pagination: 'Blog pagination',
+    previous: 'Previous',
+    next: 'Next',
+    browseByTag: 'Browse by tag',
+    allPosts: 'All posts',
+  },
+  de: {
+    title: 'Blog',
+    description: 'Entwicklungsnotizen aus echten Projekten, Open-Source-Arbeit und die Ideen hinter Moo UI.',
+    eyebrow: 'Entwicklungsnotizen',
+    empty: 'Noch keine Artikel.',
+    latest: 'Neu',
+    readingTime: 'Min. Lesezeit',
+    pagination: 'Blog-Seiten',
+    previous: 'Zurück',
+    next: 'Weiter',
+    browseByCategory: 'Nach Kategorie durchsuchen',
+    allPosts: 'Alle Beiträge',
+  },
+  tr: {
+    title: 'Blog',
+    description: 'Gerçek projelerden geliştirme notları, açık kaynak çalışmaları ve Moo UI’nin arkasındaki fikirler.',
+    eyebrow: 'Geliştirme notları',
+    empty: 'Henüz yazı yok.',
+    latest: 'En yeni',
+    readingTime: 'dk. okuma',
+    pagination: 'Blog sayfaları',
+    previous: 'Önceki',
+    next: 'Sonraki',
+    browseByCategory: 'Kategoriye göre gözat',
+    allPosts: 'Tüm yazılar',
+  },
+} as const;
+const labels = copy[lang];
+
+// The `category` value is a canonical English key shared across all three
+// languages (drives the /category/<slug>/ URL via .toLowerCase()) so it
+// never changes meaning or breaks links between locales. Only the
+// *displayed* label is translated here, per category, per language —
+// most categories (proper nouns/established terms: Odoo, Frontend,
+// DevOps, WordPress) read the same in all three languages and simply
+// fall back to the canonical key.
+const categoryLabels: Record<'en' | 'de' | 'tr', Partial<Record<string, string>>> = {
+  en: {},
+  de: { Technology: 'Technologie' },
+  tr: { Technology: 'Teknoloji' },
+};
+const categoryLabel = (category: string) => categoryLabels[lang][category] ?? category;
+
+const basePath = lang === 'en' ? '/blog/' : `/${lang}/blog/`;
+const locale = lang === 'en' ? 'en-US' : lang === 'de' ? 'de-DE' : 'tr-TR';
+const pageHref = (page: number) => page === 1 ? basePath : `${basePath}page/${page}/`;
+const categoryHref = (category: string) => `${basePath}category/${category.toLowerCase()}/`;
+const pageNumbers = Array.from({ length: totalPages }, (_, index) => index + 1);
+---
+
+<Base title={`${labels.title} — Ahmet Cangir`} description={labels.description} lang={lang}>
+  <Header lang={lang} />
+  <main class="container site-content flex-grow-1 py-5">
+    <header class="mx-auto text-center col-12 col-lg-8 py-lg-3 mb-5">
+      <span class="badge border text-body-secondary mb-3">{labels.eyebrow}</span>
+      <h1 class="display-5 fw-semibold mb-3">{labels.title}</h1>
+      <p class="lead text-body-secondary mb-0">{labels.description}</p>
+    </header>
+
+    <div class="row g-4 g-lg-5">
+      {categories.length > 0 && (
+        <aside class="col-12 col-lg-3">
+          <div class="sticky-top pt-1">
+            <h2 class="h6 text-uppercase text-body-secondary mb-3">{labels.browseByCategory}</h2>
+            <nav aria-label={labels.browseByCategory}>
+              <ul class="nav flex-lg-column flex-row flex-wrap gap-1">
+                <li class="nav-item">
+                  <a
+                    href={basePath}
+                    class={`nav-link px-0 py-1${!activeCategory ? ' fw-semibold text-body' : ' text-body-secondary'}`}
+                    aria-current={!activeCategory ? 'page' : undefined}
+                  >
+                    {labels.allPosts}
+                  </a>
+                </li>
+                {categories.map(({ category, count }) => (
+                  <li class="nav-item">
+                    <a
+                      href={categoryHref(category)}
+                      class={`nav-link px-0 py-1${activeCategory === category ? ' fw-semibold text-body' : ' text-body-secondary'}`}
+                      aria-current={activeCategory === category ? 'page' : undefined}
+                    >
+                      {categoryLabel(category)} <span class="text-body-secondary">({count})</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          </div>
+        </aside>
+      )}
+
+      <div class={categories.length > 0 ? 'col-12 col-lg-9' : 'col-12'}>
+        {posts.length === 0 ? (
+          <div class="alert alert-secondary" role="status">{labels.empty}</div>
+        ) : (
+          <div class="d-flex flex-column">
+            {posts.map((post, index) => {
+              const slug = post.id.replace(new RegExp(`^${lang}/`), '').replace(/\/$/, '');
+              const wordCount = (post.body ?? '').split(/\s+/).filter(Boolean).length;
+              const readingTime = Math.max(1, Math.ceil(wordCount / 200));
+              const isLatest = !activeCategory && currentPage === 1 && index === 0;
+              return (
+                <article class={`d-flex flex-column flex-sm-row gap-3 gap-sm-4 py-4 position-relative${index > 0 ? ' border-top' : ''}`}>
+                  {post.data.cover && (
+                    <img
+                      src={post.data.cover}
+                      alt=""
+                      width="220"
+                      height="124"
+                      class="bg-body-tertiary rounded-3 flex-shrink-0 object-fit-cover mw-100"
+                    />
+                  )}
+                  <div class="d-flex flex-column">
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-2 text-body-secondary small">
+                      {isLatest && <span class="badge text-bg-dark">{labels.latest}</span>}
+                      {post.data.tags.slice(0, 1).map((tag: string) => <span class="badge border text-body-secondary">{tag}</span>)}
+                      <time datetime={post.data.pubDate.toISOString()}>
+                        {post.data.pubDate.toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </time>
+                      <span aria-hidden="true">·</span>
+                      <span>{readingTime} {labels.readingTime}</span>
+                    </div>
+                    <h2 class="h5 mb-2">
+                      <a href={`${basePath}${slug}/`} class="text-body text-decoration-none stretched-link">{post.data.title}</a>
+                    </h2>
+                    <p class="text-body-secondary mb-0">{post.data.description}</p>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+
+    {totalPages > 1 && (
+      <nav class="mt-5" aria-label={labels.pagination}>
+        <ul class="pagination justify-content-center flex-wrap">
+          <li class={`page-item${currentPage === 1 ? ' disabled' : ''}`}>
+            <a class="page-link" href={pageHref(Math.max(1, currentPage - 1))} aria-disabled={currentPage === 1 ? 'true' : undefined}>{labels.previous}</a>
+          </li>
+          {pageNumbers.map((page) => (
+            <li class={`page-item${page === currentPage ? ' active' : ''}`}>
+              <a class="page-link" href={pageHref(page)} aria-current={page === currentPage ? 'page' : undefined}>{page}</a>
+            </li>
+          ))}
+          <li class={`page-item${currentPage === totalPages ? ' disabled' : ''}`}>
+            <a class="page-link" href={pageHref(Math.min(totalPages, currentPage + 1))} aria-disabled={currentPage === totalPages ? 'true' : undefined}>{labels.next}</a>
+          </li>
+        </ul>
+      </nav>
+    )}
+  </main>
+  <Footer lang={lang} />
+</Base>

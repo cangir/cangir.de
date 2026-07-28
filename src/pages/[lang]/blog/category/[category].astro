@@ -1,0 +1,23 @@
+---
+import BlogIndex from '../../../../components/blog/BlogIndex.astro';
+import { getLangPosts, getCategorySummary, postsByCategory } from '../../../../lib/blog';
+
+export async function getStaticPaths() {
+  const locales = ['de', 'tr'] as const;
+  const results = await Promise.all(
+    locales.map(async (lang) => {
+      const posts = await getLangPosts(lang);
+      const categories = getCategorySummary(posts);
+      return categories.map(({ category }) => ({
+        params: { lang, category: category.toLowerCase() },
+        props: { lang, posts: postsByCategory(posts, category), categories, activeCategory: category },
+      }));
+    }),
+  );
+  return results.flat();
+}
+
+const { lang, posts, categories, activeCategory } = Astro.props;
+---
+
+<BlogIndex lang={lang} posts={posts} categories={categories} activeCategory={activeCategory} />

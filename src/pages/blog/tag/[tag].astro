@@ -1,0 +1,17 @@
+---
+import BlogIndex from '../../../components/blog/BlogIndex.astro';
+import { getLangPosts, getTagSummary, postsByTag } from '../../../lib/blog';
+
+export async function getStaticPaths() {
+  const posts = await getLangPosts('en');
+  const tags = getTagSummary(posts);
+  return tags.map(({ tag }) => ({
+    params: { tag },
+    props: { posts: postsByTag(posts, tag), tags, activeTag: tag },
+  }));
+}
+
+const { posts, tags, activeTag } = Astro.props;
+---
+
+<BlogIndex lang="en" posts={posts} tags={tags} activeTag={activeTag} />

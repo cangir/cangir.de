@@ -1,39 +1,88 @@
 ---
 import { getCollection, render } from 'astro:content';
-import Base from '../../layouts/Base.astro';
-import Header from '../../components/layout/Header.astro';
-import Footer from '../../components/layout/Footer.astro';
+import Base from '../../../layouts/Base.astro';
+import Header from '../../../components/layout/Header.astro';
+import Footer from '../../../components/layout/Footer.astro';
+
+const supportedLocales = ['de', 'tr'] as const;
+type SupportedLocale = (typeof supportedLocales)[number];
+
+const copy = {
+  de: {
+    onThisPage: 'Auf dieser Seite',
+    allArticles: 'Alle Artikel',
+    minuteRead: 'Min. Lesezeit',
+    share: 'Artikel teilen',
+    copyLink: 'Link kopieren',
+    copyCode: 'Code kopieren',
+    copied: 'Kopiert!',
+    codeCopied: 'Code in die Zwischenablage kopiert.',
+    failed: 'Kopieren fehlgeschlagen',
+    writtenBy: 'Geschrieben von',
+    continueReading: 'Weiterlesen',
+    relatedArticles: 'Ähnliche Artikel',
+    bio: 'Ich entwickle Werkzeuge für ruhigere Entwicklungsabläufe – von Odoo-Anwendungen bis zu Bootstrap-nativen Benutzeroberflächen.',
+  },
+  tr: {
+    onThisPage: 'Bu yazıda',
+    allArticles: 'Tüm yazılar',
+    minuteRead: 'dk. okuma',
+    share: 'Yazıyı paylaş',
+    copyLink: 'Bağlantıyı kopyala',
+    copyCode: 'Kodu kopyala',
+    copied: 'Kopyalandı!',
+    codeCopied: 'Kod panoya kopyalandı.',
+    failed: 'Kopyalanamadı',
+    writtenBy: 'Yazan',
+    continueReading: 'Okumaya devam et',
+    relatedArticles: 'İlgili yazılar',
+    bio: 'Odoo uygulamalarından Bootstrap-native arayüzlere kadar daha sakin geliştirme akışları için araçlar üretiyorum.',
+  },
+};
 
 export async function getStaticPaths() {
-  const posts = await getCollection('blog', ({ id, data }) => id.startsWith('en/') && !data.draft);
+  const locales = ['de', 'tr'] as const;
+  const posts = await getCollection('blog', ({ id, data }) =>
+    locales.some((locale) => id.startsWith(`${locale}/`)) && !data.draft
+  );
+
   return posts.map((post) => {
+    const lang = post.id.split('/')[0] as SupportedLocale;
     const postTags = new Set(post.data.tags);
     const relatedPosts = posts
-      .filter((candidate) => candidate.id !== post.id && candidate.data.tags.some((tag) => postTags.has(tag)))
+      .filter((candidate) =>
+        candidate.id !== post.id &&
+        candidate.id.startsWith(`${lang}/`) &&
+        candidate.data.tags.some((tag) => postTags.has(tag))
+      )
       .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
       .slice(0, 3);
     return {
-      params: { slug: post.id.replace(/^en\//, '').replace(/\/$/, '') },
-      props: { post, relatedPosts },
+      params: {
+        lang,
+        slug: post.id.replace(new RegExp(`^${lang}/`), '').replace(/\/$/, ''),
+      },
+      props: { post, lang, relatedPosts },
     };
   });
 }
 
-const { post, relatedPosts } = Astro.props;
+const { post, lang, relatedPosts } = Astro.props as { post: any; lang: SupportedLocale; relatedPosts: any[] };
 const { Content, headings } = await render(post);
-const lang = 'en';
+const labels = copy[lang];
 const tocItems = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
 const wordCount = (post.body ?? '').split(/\s+/).filter(Boolean).length;
 const readingTime = Math.max(1, Math.ceil(wordCount / 200));
-const slug = post.id.replace(/^en\//, '').replace(/\/$/, '');
-const postUrl = `https://cangir.de/blog/${slug}/`;
+const slug = post.id.replace(new RegExp(`^${lang}/`), '').replace(/\/$/, '');
+const postUrl = `https://cangir.de/${lang}/blog/${slug}/`;
+const dateLocale = lang === 'tr' ? 'tr-TR' : 'de-DE';
 ---
 
 <Base title={`${post.data.title} — Ahmet Cangir`} description={post.data.description} lang={lang} cover={post.data.cover}>
   <Header lang={lang} />
   <main class="container site-content flex-grow-1 py-4 py-lg-5">
-    <a href="/blog/" class="d-inline-flex align-items-center gap-2 small text-body-secondary text-decoration-none mb-5">
-      <span aria-hidden="true">←</span> All articles
+    <a href={`/${lang}/blog/`} class="d-inline-flex align-items-center gap-2 small text-body-secondary text-decoration-none mb-5">
+      <span aria-hidden="true">←</span> {labels.allArticles}
     </a>
 
     <header class="border-bottom divider-dashed pb-5 mb-5">
@@ -45,16 +94,16 @@ const postUrl = `https://cangir.de/blog/${slug}/`;
 
           <div class="d-flex flex-wrap align-items-center gap-2 text-body-secondary small mb-4">
             <time datetime={post.data.pubDate.toISOString()}>
-              {post.data.pubDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+              {post.data.pubDate.toLocaleDateString(dateLocale, { year: 'numeric', month: 'long', day: 'numeric' })}
             </time>
             <span aria-hidden="true">·</span>
-            <span>{readingTime} min read</span>
+            <span>{readingTime} {labels.minuteRead}</span>
           </div>
 
           <h1 class="display-6 fw-semibold lh-sm mb-4">{post.data.title}</h1>
           <p class="lead text-body-secondary mb-4">{post.data.description}</p>
 
-          <div class="d-flex flex-wrap gap-2" aria-label="Article tags">
+          <div class="d-flex flex-wrap gap-2" aria-label="Tags">
             {post.data.tags.map((tag: string) => <span class="badge border text-body-secondary">{tag}</span>)}
           </div>
     </header>
@@ -62,13 +111,13 @@ const postUrl = `https://cangir.de/blog/${slug}/`;
     {tocItems.length > 0 && (
       <section class="d-lg-none border rounded-3 mb-5" aria-labelledby="mobile-toc-title">
         <button type="button" class="btn btn-ghost w-100 d-flex align-items-center justify-content-between text-start p-3" id="mobile-toc-toggle" aria-expanded="false" aria-controls="mobile-toc">
-          <span class="fw-semibold" id="mobile-toc-title">On this page</span>
+          <span class="fw-semibold" id="mobile-toc-title">{labels.onThisPage}</span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="m6 9 6 6 6-6"></path>
           </svg>
         </button>
         <div class="collapse" id="mobile-toc">
-          <nav class="nav toc-nav flex-column border-top p-3" aria-label="On this page">
+          <nav class="nav toc-nav flex-column border-top p-3" aria-label={labels.onThisPage}>
             {tocItems.map((item) => (
               <a class={`nav-link px-0 py-1 small text-body-secondary${item.depth === 3 ? ' ps-3' : ''}`} href={`#${item.slug}`}>
                 {item.text}
@@ -87,19 +136,19 @@ const postUrl = `https://cangir.de/blog/${slug}/`;
 
         {relatedPosts.length > 0 && (
           <section class="border-top mt-5 pt-5" aria-labelledby="related-articles-title">
-            <p class="text-body-secondary small text-uppercase fw-semibold mb-2">Continue reading</p>
-            <h2 class="h3 mb-4" id="related-articles-title">Related articles</h2>
+            <p class="text-body-secondary small text-uppercase fw-semibold mb-2">{labels.continueReading}</p>
+            <h2 class="h3 mb-4" id="related-articles-title">{labels.relatedArticles}</h2>
             <div class="row g-3">
               {relatedPosts.map((relatedPost) => {
-                const relatedSlug = relatedPost.id.replace(/^en\//, '').replace(/\/$/, '');
+                const relatedSlug = relatedPost.id.replace(new RegExp(`^${lang}/`), '').replace(/\/$/, '');
                 return (
                   <div class="col-12 col-md-6">
                     <article class="card h-100 position-relative">
                       <div class="card-body p-4">
                         <time class="small text-body-secondary" datetime={relatedPost.data.pubDate.toISOString()}>
-                          {relatedPost.data.pubDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                          {relatedPost.data.pubDate.toLocaleDateString(dateLocale, { year: 'numeric', month: 'short', day: 'numeric' })}
                         </time>
-                        <h3 class="h5 mt-3 mb-2"><a href={`/blog/${relatedSlug}/`} class="text-body text-decoration-none stretched-link">{relatedPost.data.title}</a></h3>
+                        <h3 class="h5 mt-3 mb-2"><a href={`/${lang}/blog/${relatedSlug}/`} class="text-body text-decoration-none stretched-link">{relatedPost.data.title}</a></h3>
                         <p class="small text-body-secondary mb-0">{relatedPost.data.description}</p>
                       </div>
                     </article>
@@ -112,11 +161,11 @@ const postUrl = `https://cangir.de/blog/${slug}/`;
 
         <footer class="border-top mt-5 pt-5">
           <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 pb-5">
-            <span class="fw-semibold">Share this article</span>
+            <span class="fw-semibold">{labels.share}</span>
             <div class="d-flex flex-wrap gap-2">
               <a href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(postUrl)}&text=${encodeURIComponent(post.data.title)}`} class="btn btn-outline-secondary btn-sm" target="_blank" rel="noopener">Twitter</a>
               <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(postUrl)}`} class="btn btn-outline-secondary btn-sm" target="_blank" rel="noopener">LinkedIn</a>
-              <button type="button" class="btn btn-outline-secondary btn-sm" id="copy-link">Copy link</button>
+              <button type="button" class="btn btn-outline-secondary btn-sm" id="copy-link" data-copy-label={labels.copyLink} data-copied-label={labels.copied} data-failed-label={labels.failed}>{labels.copyLink}</button>
             </div>
           </div>
 
@@ -124,11 +173,9 @@ const postUrl = `https://cangir.de/blog/${slug}/`;
             <div class="d-flex flex-column flex-sm-row align-items-center text-center text-sm-start gap-4">
               <img src="/avatar.jpg" alt="Ahmet Cangir" width="72" height="72" class="rounded-circle border flex-shrink-0" />
               <div>
-                <p class="text-body-secondary small text-uppercase fw-semibold mb-1">Written by</p>
+                <p class="text-body-secondary small text-uppercase fw-semibold mb-1">{labels.writtenBy}</p>
                 <h2 class="h4 mb-2">Ahmet Cangir</h2>
-                <p class="text-body-secondary mb-3">
-                  I build tools for calmer development workflows—from Odoo applications to Bootstrap-native interfaces.
-                </p>
+                <p class="text-body-secondary mb-3">{labels.bio}</p>
                 <div class="d-flex justify-content-center justify-content-sm-start gap-3 small">
                   <a href="https://github.com/cangir" class="text-body fw-medium text-decoration-none" target="_blank" rel="noopener">GitHub ↗</a>
                   <a href="https://ui.wpmoo.org" class="text-body fw-medium text-decoration-none" target="_blank" rel="noopener">Moo UI ↗</a>
@@ -140,9 +187,9 @@ const postUrl = `https://cangir.de/blog/${slug}/`;
       </article>
 
       {tocItems.length > 0 && (
-        <aside class="d-none d-lg-block col-lg-3" aria-label="On this page">
+        <aside class="d-none d-lg-block col-lg-3" aria-label={labels.onThisPage}>
           <div class="article-toc-sticky border-start divider-dashed ps-4 py-2">
-            <h2 class="h6 mb-3">On this page</h2>
+            <h2 class="h6 mb-3">{labels.onThisPage}</h2>
             <nav class="nav toc-nav flex-column">
               {tocItems.map((item) => (
                 <a class={`nav-link px-0 py-1 small text-body-secondary${item.depth === 3 ? ' ps-3' : ''}`} href={`#${item.slug}`}>
@@ -157,9 +204,9 @@ const postUrl = `https://cangir.de/blog/${slug}/`;
   </main>
 
   <div class="toast-container position-fixed bottom-0 end-0 p-3">
-    <div class="toast" id="copy-toast" role="status" aria-live="polite" aria-atomic="true" data-success-message="Link copied to clipboard." data-code-success-message="Code copied to clipboard." data-failed-message="The content could not be copied.">
+    <div class="toast" id="copy-toast" role="status" aria-live="polite" aria-atomic="true" data-success-message={labels.copied} data-code-success-message={labels.codeCopied} data-copy-code-label={labels.copyCode} data-failed-message={labels.failed}>
       <div class="toast-body d-flex align-items-center gap-3">
-        <span class="me-auto" data-toast-message>Link copied to clipboard.</span>
+        <span class="me-auto" data-toast-message>{labels.copied}</span>
         <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
       </div>
     </div>
@@ -226,9 +273,9 @@ const postUrl = `https://cangir.de/blog/${slug}/`;
     if (!toastElement || !toastMessage || !copyToast) return;
     try {
       await navigator.clipboard.writeText(window.location.href);
-      toastMessage.textContent = toastElement.dataset.successMessage ?? 'Link copied to clipboard.';
+      toastMessage.textContent = toastElement.dataset.successMessage ?? 'Copied!';
     } catch (_) {
-      toastMessage.textContent = toastElement.dataset.failedMessage ?? 'The content could not be copied.';
+      toastMessage.textContent = toastElement.dataset.failedMessage ?? 'Copy failed';
     }
     copyToast.show();
   });
@@ -245,8 +292,8 @@ const postUrl = `https://cangir.de/blog/${slug}/`;
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'btn btn-ghost btn-sm';
-    button.textContent = 'Copy';
-    button.setAttribute('aria-label', `Copy ${language} code`);
+    button.textContent = toastElement?.dataset.copyCodeLabel ?? 'Copy code';
+    button.setAttribute('aria-label', `${button.textContent}: ${language}`);
     toolbar.append(label, button);
     pre.parentNode?.insertBefore(wrapper, pre);
     wrapper.append(toolbar, pre);
@@ -255,9 +302,9 @@ const postUrl = `https://cangir.de/blog/${slug}/`;
       if (!toastElement || !toastMessage || !copyToast) return;
       try {
         await navigator.clipboard.writeText(pre.textContent ?? '');
-        toastMessage.textContent = toastElement.dataset.codeSuccessMessage ?? 'Code copied to clipboard.';
+        toastMessage.textContent = toastElement.dataset.codeSuccessMessage ?? 'Code copied.';
       } catch (_) {
-        toastMessage.textContent = toastElement.dataset.failedMessage ?? 'The content could not be copied.';
+        toastMessage.textContent = toastElement.dataset.failedMessage ?? 'Copy failed';
       }
       copyToast.show();
     });

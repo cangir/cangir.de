@@ -1,6 +1,9 @@
 ---
 import '@wpmoo/ui/moo-ui.css';
-import '../styles/doc.css';
+import '@fontsource/geist-sans/latin-400.css';
+import '@fontsource/geist-sans/latin-500.css';
+import '@fontsource/geist-sans/latin-600.css';
+import '../styles/site.scss';
 
 interface Props {
   title?: string;
@@ -41,15 +44,16 @@ const ogImage = cover ? new URL(cover, Astro.site) : new URL('/avatar.jpg', Astr
     <script is:inline>
       (() => {
         try {
-          const theme = localStorage.getItem('wpmoo:theme');
-          if (theme === 'dark' || theme === 'light') {
-            document.documentElement.dataset.bsTheme = theme;
-          }
+          const savedTheme = localStorage.getItem('cangir:theme');
+          const theme = savedTheme === 'dark' || savedTheme === 'light'
+            ? savedTheme
+            : window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          document.documentElement.dataset.bsTheme = theme;
         } catch (_) {}
       })();
     </script>
   </head>
-  <body class="d-flex flex-column min-vh-100 bg-body text-body">
+  <body class="page-grid-bg d-flex flex-column min-vh-100 bg-body text-body">
     <slot />
     <script>
       import 'bootstrap/dist/js/bootstrap.bundle.min.js';

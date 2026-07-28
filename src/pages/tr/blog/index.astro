@@ -1,46 +1,11 @@
 ---
-import Base from '../../../layouts/Base.astro';
-import Header from '../../../components/layout/Header.astro';
-import Footer from '../../../components/layout/Footer.astro';
-import { getCollection } from 'astro:content';
-import { t } from '../../../i18n';
+import BlogIndex from '../../../components/blog/BlogIndex.astro';
+import { getLangPosts, getCategorySummary } from '../../../lib/blog';
 
-const lang = 'tr';
-const posts = (await getCollection('blog', ({ id, data }) => {
-  return id.startsWith('tr/') && !data.draft;
-})).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const PAGE_SIZE = 6;
+const posts = await getLangPosts('tr');
+const categories = getCategorySummary(posts);
+const totalPages = Math.max(1, Math.ceil(posts.length / PAGE_SIZE));
 ---
 
-<Base title={`Blog — WPMoo`} lang={lang}>
-  <Header lang={lang} />
-  <main class="container py-5">
-    <h1 class="h2 fw-bold mb-4">{t(lang, 'blog.title')}</h1>
-    {posts.length === 0 ? (
-      <p class="text-body-secondary">{t(lang, 'blog.empty')}</p>
-    ) : (
-      <div class="d-flex flex-column gap-4">
-        {posts.map((post) => {
-          const slug = post.id.replace(/^tr\//, '');
-          return (
-            <article class="card">
-              <div class="card-body">
-                <h2 class="h5 fw-semibold mb-1">
-                  <a href={`/tr/blog/${slug}/`} class="text-decoration-none text-body stretched-link">
-                    {post.data.title}
-                  </a>
-                </h2>
-                <p class="small text-body-secondary mb-2">
-                  <time datetime={post.data.pubDate.toISOString()}>
-                    {post.data.pubDate.toLocaleDateString('tr-TR', { year: 'numeric', month: 'long', day: 'numeric' })}
-                  </time>
-                </p>
-                <p class="text-body-secondary mb-0">{post.data.description}</p>
-              </div>
-            </article>
-          );
-        })}
-      </div>
-    )}
-  </main>
-  <Footer lang={lang} />
-</Base>
+<BlogIndex lang="tr" posts={posts.slice(0, PAGE_SIZE)} currentPage={1} totalPages={totalPages} categories={categories} />

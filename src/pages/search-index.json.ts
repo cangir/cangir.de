@@ -13,6 +13,8 @@ export const GET: APIRoute = async () => {
       description: post.data.description,
       href: `${prefix}/blog/${slug}/`,
       tags: post.data.tags ?? [],
+      locale,
+      pubDate: post.data.pubDate.toISOString(),
     };
   });
 

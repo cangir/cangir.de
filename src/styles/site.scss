@@ -1,0 +1,157 @@
+// cangir.de — narrow, named, decision-recorded exceptions to the site's
+// zero-custom-CSS default (see docs/decisions/DECISIONS.md), not a
+// component stylesheet. Each rule below inherits a Bootstrap Sass
+// variable/mixin from the same functions/variables/mixins partials
+// Bootstrap's own bootstrap.scss imports first, and re-declares only the
+// exact consumption token or breakpoint value @wpmoo/ui's own component
+// CSS already reads — never a new color/radius/spacing/shadow value the
+// published @wpmoo/ui CSS doesn't already define.
+@use 'sass:list';
+@import 'bootstrap/scss/functions';
+
+// Moo UI compiles Bootstrap with a 0.875rem (14px) base instead of
+// Bootstrap's own 1rem default (see $font-size-base in
+// projects/ui/html/scss/settings/_palette.scss). Setting the same value
+// before importing Bootstrap's variables keeps every rem-derived scale
+// below — $font-size-sm included — proportional to the published
+// @wpmoo/ui CSS actually rendering on this site, not plain Bootstrap's.
+$font-size-base: 0.875rem;
+@import 'bootstrap/scss/variables';
+
+// mixins/breakpoints defines only the media-breakpoint-up mixin (no rules
+// of its own are emitted by importing it) — needed below so the
+// .site-container ceiling reuses Bootstrap's own xxl breakpoint value
+// instead of a hand-copied pixel figure that could drift from it.
+@import 'bootstrap/scss/mixins/breakpoints';
+
+$font-family-sans-serif: list.join('Geist Sans', $font-family-sans-serif, $separator: comma);
+
+// :root matches <html> regardless of the data-bs-theme attribute, so one
+// declaration covers both the light and dark theme variants Moo UI ships.
+:root {
+  --#{$prefix}font-sans-serif: #{$font-family-sans-serif};
+}
+
+// Bootstrap's own .nav-link reads --bs-nav-link-font-size (_nav.scss), but
+// ships the token unset ($nav-link-font-size: null in _variables.scss), so
+// it inherits the surrounding body size instead of a distinct nav scale.
+// .toc-nav marks the article table-of-contents nav (desktop aside and
+// mobile collapsible) and fills that same Bootstrap consumption token from
+// Bootstrap's own $font-size-sm — no new size scale, no component styling.
+.toc-nav {
+  --#{$prefix}nav-link-font-size: #{$font-size-sm};
+}
+
+// The desktop article TOC becomes sticky at the exact scroll point where
+// the article-header divider reaches the bottom of the sticky site header.
+// Its initial distance below that divider comes from the row's own
+// Bootstrap --bs-gutter-y token, so using the same token in `top` preserves
+// the TOC's visual position instead of making it jump toward the header.
+// --site-header-height is measured from the rendered header because its
+// responsive controls can change its real height; the aside remains the
+// containing block, so the TOC still releases naturally at the article end.
+.article-toc-sticky {
+  position: sticky;
+  top: calc(var(--site-header-height, 0px) + var(--#{$prefix}gutter-y));
+}
+
+// Decorative graph-paper page-top backdrop (inspired by kai.bi's homepage
+// hero). A single tiled inline-SVG pattern (dashed lines, real
+// stroke-dasharray) + mask, not literal grid-cell elements, so it stays one
+// rule instead of a markup pattern. Lives on <body> (not per-page) so it
+// reads as a site-wide top-of-page texture behind the sticky header and
+// whatever content starts each page — homepage hero, blog index, or
+// article header alike — per explicit user choice. The SVG's
+// stroke='currentColor' resolves against the element's own `color`, set
+// to Bootstrap's own --bs-secondary-color (the same muted-text token the
+// dashed article dividers below use, at the same 20%-ish visual weight
+// via the element's own opacity), so the grid re-themes automatically
+// for light/dark with no second declaration and reads consistently with
+// the other dashed lines on the page. Fixed height
+// (not `inset: 0`) so it stays a top texture instead of stretching/thinning
+// across a full tall page; z-index: -1 keeps it behind all in-flow content
+// without needing `overflow: hidden` on <body> (which risks interfering
+// with the header's own `sticky-top`).
+body.page-grid-bg {
+  position: relative;
+}
+
+body.page-grid-bg::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 420px;
+  z-index: -1;
+  color: var(--#{$prefix}secondary-color);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cpath d='M0 0H48' stroke='currentColor' stroke-width='1' stroke-dasharray='4 3'/%3E%3Cpath d='M0 0V48' stroke='currentColor' stroke-width='1' stroke-dasharray='4 3'/%3E%3C/svg%3E");
+  background-size: 48px 48px;
+  -webkit-mask-image:
+    linear-gradient(to bottom, transparent, #000 64px),
+    radial-gradient(ellipse 70% 55% at 50% 0%, #000 40%, transparent 85%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to bottom, transparent, #000 64px),
+    radial-gradient(ellipse 70% 55% at 50% 0%, #000 40%, transparent 85%);
+  mask-composite: intersect;
+  opacity: 0.2;
+  pointer-events: none;
+}
+
+// Referencing ui.wpmoo.org's own catalog content width
+// (.moo-catalog__content { max-width: 72rem }, projects/ui/html/scss/
+// catalog/_shell.scss) as the ceiling for every cangir.de page's outer
+// .container, instead of Bootstrap's own wider xxl ceiling (1320px at
+// 1400px+ viewports). Only the widest breakpoint changes — sm/md/lg/xl
+// container widths are already narrower than 72rem and stay Bootstrap's
+// own values untouched. Applied as .site-container alongside the existing
+// .container class ("container site-container"), not a replacement for
+// it, so gutter/margin-auto centering still comes from Bootstrap's own
+// .container rule.
+@include media-breakpoint-up(xxl) {
+  .site-container {
+    max-width: 72rem;
+  }
+}
+
+// Reference: kai.bi's own portfolio shell (a plain shadcn-flavored personal
+// site, unrelated to Moo UI) keeps its header/footer at a wide bar but
+// reads its actual page content (hero, project grid, writing list) in a
+// visibly narrower, centered column — a deliberately tighter measure than
+// the chrome around it. .site-content reproduces that proportion: applied
+// to each page's <main> (replacing .site-container there), narrower than
+// .site-container's 72rem so Header.astro/Footer.astro stay at the wider
+// width while <main> centers inside a tighter one. No kai.bi markup or CSS
+// was copied — only the width relationship (chrome wider than content).
+@include media-breakpoint-up(xxl) {
+  .site-content {
+    max-width: 64rem;
+  }
+}
+
+// Bootstrap ships border color/width utilities (border-bottom,
+// border-secondary-subtle, ...) but no border *style* utility — there is
+// no border-dashed class. `border-style`/`border-color` are CSS shorthand
+// properties that set all four sides at once, so a naive single
+// `.divider-dashed { border-style: dashed }` would turn on the *other*
+// three sides too (their width defaults to the initial `medium` the
+// moment their style stops being `none`), drawing a box instead of one
+// line. Each usage below instead sets only the specific
+// `border-<side>-style`/`-color` longhand matching the Bootstrap
+// border-<side> utility it's paired with (border-bottom / border-start),
+// leaving the other three sides completely untouched. Color starts from
+// Bootstrap's own muted-text token (re-themes for light/dark
+// automatically) and is blended toward transparent with `color-mix`
+// (currently 20%, per user preference) rather than applying `opacity` to
+// the element itself, which would also fade the header/TOC text and
+// icons, not just the line.
+.divider-dashed.border-bottom {
+  border-bottom-style: dashed !important;
+  border-bottom-color: color-mix(in srgb, var(--#{$prefix}secondary-color) 20%, transparent) !important;
+}
+
+.divider-dashed.border-start {
+  border-left-style: dashed !important;
+  border-left-color: color-mix(in srgb, var(--#{$prefix}secondary-color) 20%, transparent) !important;
+}

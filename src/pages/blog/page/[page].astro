@@ -1,0 +1,23 @@
+---
+import BlogIndex from '../../../components/blog/BlogIndex.astro';
+import { getLangPosts, getCategorySummary } from '../../../lib/blog';
+
+export async function getStaticPaths() {
+  const pageSize = 6;
+  const posts = await getLangPosts('en');
+  const categories = getCategorySummary(posts);
+  const totalPages = Math.ceil(posts.length / pageSize);
+  return Array.from({ length: Math.max(0, totalPages - 1) }, (_, index) => {
+    const currentPage = index + 2;
+    const start = (currentPage - 1) * pageSize;
+    return {
+      params: { page: String(currentPage) },
+      props: { posts: posts.slice(start, start + pageSize), currentPage, totalPages, categories },
+    };
+  });
+}
+
+const { posts, currentPage, totalPages, categories } = Astro.props;
+---
+
+<BlogIndex lang="en" posts={posts} currentPage={currentPage} totalPages={totalPages} categories={categories} />
