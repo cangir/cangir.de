@@ -75,7 +75,7 @@ const languages = [
 ] as const;
 ---
 
-<header class="sticky-top border-bottom bg-body" data-site-header>
+<header class="sticky-top" data-site-header>
   <nav class="navbar" aria-label={labels.navigation}>
     <div class="container site-container d-flex flex-nowrap gap-1 gap-sm-2">
       <a class="navbar-brand fs-4 fw-bold uppercase-tracked me-1 py-2 py-lg-1" href={homeHref}>CNGR</a>
@@ -125,7 +125,7 @@ const languages = [
 
         <button
           type="button"
-          class="form-control form-control-sm w-auto site-search-trigger d-inline-flex align-items-center justify-content-between gap-3 text-body-secondary fw-normal"
+          class="form-control form-control-sm w-auto site-search-trigger d-inline-flex align-items-center justify-content-between gap-3 text-body-secondary fw-normal bg-body"
           aria-label={labels.search}
           data-bs-toggle="modal"
           data-bs-target="#site-search"
@@ -216,6 +216,16 @@ const languages = [
     };
     new ResizeObserver(syncSiteHeaderHeight).observe(siteHeader);
     syncSiteHeaderHeight();
+
+    // Transparent over the page-grid-bg decoration at rest, solid once the
+    // page actually scrolls (site.scss owns the background/fade rules for
+    // both states). A small threshold, not strictly > 0, absorbs the 1-2px
+    // rubber-band scroll some browsers report at rest.
+    const syncSiteHeaderScrolled = () => {
+      siteHeader.toggleAttribute('data-scrolled', window.scrollY > 4);
+    };
+    document.addEventListener('scroll', syncSiteHeaderScrolled, { passive: true });
+    syncSiteHeaderScrolled();
   }
 
   const languageTrigger = document.getElementById('language-dropdown');

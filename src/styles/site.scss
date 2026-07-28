@@ -72,17 +72,29 @@ $font-family-monospace: list.join('Geist Mono', $font-family-monospace, $separat
 // rule instead of a markup pattern. Lives on <body> (not per-page) so it
 // reads as a site-wide top-of-page texture behind the sticky header and
 // whatever content starts each page — homepage hero, blog index, or
-// article header alike — per explicit user choice. The SVG's
-// stroke='currentColor' resolves against the element's own `color`, set
-// to Bootstrap's own --bs-secondary-color (the same muted-text token the
-// dashed article dividers below use, at the same 20%-ish visual weight
-// via the element's own opacity), so the grid re-themes automatically
-// for light/dark with no second declaration and reads consistently with
-// the other dashed lines on the page. Fixed height
-// (not `inset: 0`) so it stays a top texture instead of stretching/thinning
+// article header alike — per explicit user choice. Fixed height (not
+// `inset: 0`) so it stays a top texture instead of stretching/thinning
 // across a full tall page; z-index: -1 keeps it behind all in-flow content
 // without needing `overflow: hidden` on <body> (which risks interfering
 // with the header's own `sticky-top`).
+//
+// The SVG pattern is a `mask-image` layer, not `background-image`: an
+// earlier version set stroke='currentColor' on the SVG and expected it to
+// resolve against the element's own `color`, but that only works for
+// *inline* SVG in the DOM, not an SVG referenced through a CSS url() --
+// verified live by forcing `color: magenta` on <body> and confirming the
+// pattern stayed exactly as before (it renders the SVG's own unstyled
+// default, black, regardless of the element's `color`). Using the SVG
+// purely as an alpha mask sidesteps that: `stroke='black'` only marks
+// which pixels are opaque (so the pattern shape shows through), and the
+// actual visible color comes from a real `background-color` reading
+// Bootstrap's own --bs-secondary-color -- a plain CSS custom-property
+// reference, which (unlike currentColor inside a referenced SVG) does
+// re-theme correctly for light/dark with no second declaration. The two
+// fade masks (top reveal, radial falloff) are unchanged from before, just
+// joined by the same `mask-composite: intersect` chain the radial layer
+// already used against the linear one, now extended to intersect the
+// pattern layer too.
 body.page-grid-bg {
   position: relative;
 }
@@ -95,33 +107,33 @@ body.page-grid-bg::before {
   right: 0;
   height: 420px;
   z-index: -1;
-  color: var(--#{$prefix}secondary-color);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cpath d='M0 0H48' stroke='currentColor' stroke-width='1' stroke-dasharray='4 3'/%3E%3Cpath d='M0 0V48' stroke='currentColor' stroke-width='1' stroke-dasharray='4 3'/%3E%3C/svg%3E");
-  background-size: 48px 48px;
+  background-color: var(--#{$prefix}secondary-color);
   -webkit-mask-image:
-    linear-gradient(to bottom, transparent, #000 64px),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cpath d='M0 0H48' stroke='black' stroke-width='1' stroke-dasharray='4 3'/%3E%3Cpath d='M0 0V48' stroke='black' stroke-width='1' stroke-dasharray='4 3'/%3E%3C/svg%3E"),
+    linear-gradient(to bottom, transparent, #000 160px),
     radial-gradient(ellipse 70% 55% at 50% 0%, #000 40%, transparent 85%);
-  -webkit-mask-composite: source-in;
+  -webkit-mask-size: 48px 48px, auto, auto;
+  -webkit-mask-repeat: repeat, no-repeat, no-repeat;
+  -webkit-mask-composite: source-in, source-in;
   mask-image:
-    linear-gradient(to bottom, transparent, #000 64px),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cpath d='M0 0H48' stroke='black' stroke-width='1' stroke-dasharray='4 3'/%3E%3Cpath d='M0 0V48' stroke='black' stroke-width='1' stroke-dasharray='4 3'/%3E%3C/svg%3E"),
+    linear-gradient(to bottom, transparent, #000 160px),
     radial-gradient(ellipse 70% 55% at 50% 0%, #000 40%, transparent 85%);
+  mask-size: 48px 48px, auto, auto;
+  mask-repeat: repeat, no-repeat, no-repeat;
   mask-composite: intersect;
   opacity: 0.2;
   pointer-events: none;
 }
 
-// The grid reads var(--bs-secondary-color) through `color`/`currentColor`,
-// which Moo UI's dark theme sets to a *lighter* value than light mode
-// (rgba(222, 226, 230, 0.75) vs rgba(24, 24, 27, 0.75)) — but the same
-// element `opacity: 0.2` above, against dark mode's much darker page
-// background, brings the rendered lines close to invisible. Light mode is
-// untouched (no rule here changes it); this raises only the dark-theme
-// opacity so the grid reads at roughly the same visual weight as it
-// already does in light mode. Scoped to Bootstrap's own `data-bs-theme`
-// attribute (set on <html> by the theme toggle in Base.astro), the same
-// mechanism Moo UI itself uses to switch color-mode tokens.
+// --bs-secondary-color (light mode's own token, used above) reads as a
+// muted mid-gray in dark mode too dim for this sparse a pattern against a
+// dark page background. --bs-body-color (#fafafa, Bootstrap's own next
+// step up the color-mode ladder from secondary-color) is bright enough to
+// keep the same opacity light mode uses, rather than needing a second,
+// heavier opacity to compensate for a dim color.
 [data-bs-theme='dark'] body.page-grid-bg::before {
-  opacity: 0.5;
+  background-color: var(--#{$prefix}body-color);
 }
 
 // Referencing ui.wpmoo.org's own catalog content width
@@ -270,4 +282,72 @@ body.page-grid-bg::before {
 .article-body > ol,
 .article-body > blockquote {
   max-width: 55ch;
+}
+
+// Header starts transparent so body.page-grid-bg::before (position:
+// absolute, top: 0, z-index: -1 -- already extending under the header,
+// not only under <main>) shows through at rest, then becomes solid once
+// Header.astro's own scroll listener sets [data-scrolled] a few pixels
+// into the page. That toggle replaces the old border-bottom entirely: at
+// rest there is no header/content seam to draw a line under in the first
+// place, and once scrolled the ::after gradient below stands in for it,
+// the same soft-edge goal as ui.wpmoo.org's own catalog shell (whose
+// header sits over a scroll-fade-masked main, projects/ui/html/scss/
+// utilities/_scroll_fade.scss). That mechanism depends on the faded
+// element being its own fixed-height, internally-scrolling container --
+// true for the catalog shell, not for this site, where the whole
+// document scrolls and #main-content's box moves with it (a mask there
+// would only be visible for the first ~100px of scroll and then scroll
+// away with the rest of the page). Mounting the fade on the sticky header
+// itself instead avoids that: the header stays pinned at every scroll
+// position, so the soft edge does too, with no scroll-timeline or layout
+// dependency.
+[data-site-header] {
+  background-color: transparent;
+  transition: background-color 0.2s ease;
+
+  &[data-scrolled] {
+    background-color: var(--bs-body-bg);
+  }
+
+  &[data-scrolled]::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    top: 100%;
+    height: 1rem;
+    background: linear-gradient(to bottom, var(--bs-body-bg), transparent);
+    pointer-events: none;
+  }
+}
+
+// Same soft-edge goal as the header (no border, a gradient standing in
+// for the seam), but the header's fade has real work to do because the
+// header itself changes color (transparent to var(--bs-body-bg)) on
+// scroll. The footer never changes state, and without its own distinct
+// background a fade from body-bg to transparent is invisible -- both ends
+// are the same color as the page around them. --bs-tertiary-bg (barely
+// off body-bg in both themes: #fafafa vs #fff light, #202024 vs #212529
+// dark, verified via getComputedStyle) gives the footer a real, if subtle,
+// surface of its own -- shadcn's own footers read this way, a faint shift
+// rather than a raised card -- so the gradient has an actual transition to
+// perform. 4rem (not the header's 1rem) because that shift, small as it
+// is, still read as a hard edge over a short distance -- a taller fade
+// spreads the same total change over more pixels so it reads as gradual.
+// `position: relative` establishes the containing block the ::before
+// needs (the footer has no other positioned ancestor unlike the header,
+// which already gets one from `sticky-top`).
+[data-site-footer] {
+  position: relative;
+  background-color: var(--#{$prefix}tertiary-bg);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    bottom: 100%;
+    height: 4rem;
+    background: linear-gradient(to top, var(--#{$prefix}tertiary-bg), transparent);
+    pointer-events: none;
+  }
 }
