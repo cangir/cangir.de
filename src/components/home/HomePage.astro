@@ -25,9 +25,14 @@ const labels = ({
     projectsCardTitle: 'Projects', projectsCardDescription: 'Bootstrap markup, shadcn feel — a component system for server-rendered applications.', projectsCardCta: 'View projects →',
     githubCardTitle: 'GitHub', githubCardDescription: 'Code, experiments, and the occasional rabbit hole.', githubCardCta: 'Open GitHub profile →',
     emptyWriting: 'No posts in this language yet.', emptyWritingLink: 'Read the English notes',
-    writingEyebrow: 'Latest writing', writingTitle: 'Notes from the work',
-    writingIntro: 'Implementation details, release lessons, and the decisions behind the products.',
+    writingEyebrow: 'Latest writing', writingTitle: 'Notes to self',
+    writingIntro: 'What I write down while figuring something out. Most of it is for future me.',
     allWriting: 'View all writing', minRead: 'min read',
+    specimenEyebrow: 'Specimen', specimenTitle: 'Moo UI, running live',
+    specimenPrimary: 'Primary', specimenOutline: 'Outline',
+    specimenBadge: 'Badge', specimenCategory: 'Category',
+    specimenNote: 'Not a screenshot: every element above is a real Moo UI component, styled by the same CSS as the rest of this page.',
+    specimenCta: 'Browse the components →',
   },
   de: {
     metaTitle: 'Ahmet Cangir — Entwickler, Produktgestalter und technischer Autor',
@@ -41,9 +46,14 @@ const labels = ({
     projectsCardTitle: 'Projekte', projectsCardDescription: 'Bootstrap-Markup, shadcn-Gefühl – ein Komponentensystem für serverseitig gerenderte Anwendungen.', projectsCardCta: 'Projekte ansehen →',
     githubCardTitle: 'GitHub', githubCardDescription: 'Code, Experimente und gelegentliche Abstecher.', githubCardCta: 'GitHub-Profil öffnen →',
     emptyWriting: 'Noch keine Beiträge in dieser Sprache.', emptyWritingLink: 'Englische Notizen lesen',
-    writingEyebrow: 'Aktuelle Texte', writingTitle: 'Notizen aus der Arbeit',
-    writingIntro: 'Implementierungsdetails, Release-Lektionen und die Entscheidungen hinter den Produkten.',
+    writingEyebrow: 'Aktuelle Texte', writingTitle: 'Notizen an mich selbst',
+    writingIntro: 'Was ich notiere, während ich etwas löse. Das meiste ist für mein späteres Ich.',
     allWriting: 'Alle Beiträge', minRead: 'Min. Lesezeit',
+    specimenEyebrow: 'Schaustück', specimenTitle: 'Moo UI, live im Einsatz',
+    specimenPrimary: 'Primär', specimenOutline: 'Outline',
+    specimenBadge: 'Badge', specimenCategory: 'Kategorie',
+    specimenNote: 'Kein Screenshot: Jedes Element oben ist eine echte Moo-UI-Komponente, gestaltet vom selben CSS wie der Rest dieser Seite.',
+    specimenCta: 'Komponenten ansehen →',
   },
   tr: {
     metaTitle: 'Ahmet Cangir — Geliştirici, ürün üreticisi ve teknik yazar',
@@ -57,9 +67,14 @@ const labels = ({
     projectsCardTitle: 'Projeler', projectsCardDescription: 'Bootstrap markup, shadcn hissi — server-rendered uygulamalar için bir bileşen sistemi.', projectsCardCta: 'Projeleri gör →',
     githubCardTitle: 'GitHub', githubCardDescription: 'Kod, deneyler ve ara sıra tavşan deliği.', githubCardCta: 'GitHub profilini aç →',
     emptyWriting: 'Bu dilde henüz yazı yok.', emptyWritingLink: 'İngilizce notları oku',
-    writingEyebrow: 'Son yazılar', writingTitle: 'Çalışmadan notlar',
-    writingIntro: 'Uygulama ayrıntıları, release dersleri ve ürünlerin arkasındaki kararlar.',
+    writingEyebrow: 'Son yazılar', writingTitle: 'Kendime notlar',
+    writingIntro: 'Bir şeyi çözerken not aldıklarım. Çoğu ileride bana lazım oluyor.',
     allWriting: 'Tüm yazılar', minRead: 'dk. okuma',
+    specimenEyebrow: 'Vitrin', specimenTitle: 'Moo UI, canlı çalışıyor',
+    specimenPrimary: 'Birincil', specimenOutline: 'Outline',
+    specimenBadge: 'Rozet', specimenCategory: 'Kategori',
+    specimenNote: 'Ekran görüntüsü değil: yukarıdaki her öğe gerçek bir Moo UI bileşeni, bu sayfanın geri kalanıyla aynı CSS’ten geliyor.',
+    specimenCta: 'Bileşenleri incele →',
   },
 } as const)[lang];
 
@@ -102,7 +117,7 @@ const posts = (await getCollection('blog', ({ id, data }) => id.startsWith(`${la
 
       <div class="row g-4">
         <div class="col-12 col-md-4">
-          <article class="card h-100">
+          <article class="card card-dashed h-100">
             <div class="card-body d-flex flex-column gap-3 p-3 p-lg-4">
               <span class="d-inline-flex align-items-center justify-content-center align-self-start rounded-3 bg-body-tertiary border p-2" aria-hidden="true">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -119,7 +134,7 @@ const posts = (await getCollection('blog', ({ id, data }) => id.startsWith(`${la
         </div>
 
         <div class="col-12 col-md-4">
-          <article class="card h-100">
+          <article class="card card-dashed h-100">
             <div class="card-body d-flex flex-column gap-3 p-3 p-lg-4">
               <span class="d-inline-flex align-items-center justify-content-center align-self-start rounded-3 bg-body-tertiary border p-2" aria-hidden="true">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -136,7 +151,7 @@ const posts = (await getCollection('blog', ({ id, data }) => id.startsWith(`${la
         </div>
 
         <div class="col-12 col-md-4">
-          <article class="card h-100">
+          <article class="card card-dashed h-100">
             <div class="card-body d-flex flex-column gap-3 p-3 p-lg-4">
               <span class="d-inline-flex align-items-center justify-content-center align-self-start rounded-3 bg-body-tertiary border p-2" aria-hidden="true">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -154,41 +169,135 @@ const posts = (await getCollection('blog', ({ id, data }) => id.startsWith(`${la
       </div>
     </section>
 
-    <section class="py-4 mb-5" aria-labelledby="latest-writing-title">
-      <header class="d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3 mb-3">
-        <div>
-          <p class="text-body-secondary small text-uppercase fw-semibold uppercase-tracked mb-2">{labels.writingEyebrow}</p>
-          <h2 class="h2 mb-2" id="latest-writing-title">{labels.writingTitle}</h2>
-          <p class="text-body-secondary mb-0">{labels.writingIntro}</p>
+    {/*
+      Latest writing occupies the left two thirds — the same span as the
+      first two Explore cards above it (col-md-4 x 2), so the two sections
+      share one column edge. The remaining third holds the Moo UI specimen.
+    */}
+    <div class="row py-4 mb-5">
+      <section class="col-12 col-md-8" aria-labelledby="latest-writing-title">
+        <header class="d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3 mb-3">
+          <div>
+            <p class="text-body-secondary small text-uppercase fw-semibold uppercase-tracked mb-2">{labels.writingEyebrow}</p>
+            <h2 class="h2 mb-2" id="latest-writing-title">{labels.writingTitle}</h2>
+            <p class="text-body-secondary mb-0">{labels.writingIntro}</p>
+          </div>
+          <a class="btn btn-outline-secondary btn-sm align-self-start align-self-md-auto" href={blogBase}>{labels.allWriting}</a>
+        </header>
+        <div class="d-flex flex-column gap-3">
+          {posts.length === 0 ? (
+            <p class="text-body-secondary py-4 mb-0">
+              {labels.emptyWriting}
+              {lang !== 'en' && <> <a href="/blog/">{labels.emptyWritingLink}</a></>}
+            </p>
+          ) : (
+            posts.map((post) => {
+              const slug = post.id.replace(`${lang}/`, '').replace(/\/$/, '');
+              const minutes = Math.max(1, Math.ceil((post.body ?? '').split(/\s+/).filter(Boolean).length / 200));
+              return (
+                <article class="card card-dashed">
+                  <div class="card-body p-3 p-lg-4">
+                    <div class="d-flex flex-wrap align-items-center gap-2 text-body-secondary small mb-2">
+                      <span class="badge border text-body-secondary">{post.data.category}</span>
+                      <time datetime={post.data.pubDate.toISOString()}>{post.data.pubDate.toLocaleDateString(locale, { dateStyle: 'medium' })}</time>
+                      <span aria-hidden="true">·</span><span>{minutes} {labels.minRead}</span>
+                    </div>
+                    <h3 class="h4 mb-2"><a class="text-body text-decoration-none stretched-link" href={`${blogBase}${slug}/`}>{post.data.title}</a></h3>
+                    <p class="text-body-secondary mb-0">{post.data.description}</p>
+                  </div>
+                </article>
+              );
+            })
+          )}
         </div>
-        <a class="btn btn-outline-secondary btn-sm align-self-start align-self-md-auto" href={blogBase}>{labels.allWriting}</a>
-      </header>
-      <div class="d-flex flex-column">
-        {posts.length === 0 ? (
-          <p class="text-body-secondary py-4 mb-0">
-            {labels.emptyWriting}
-            {lang !== 'en' && <> <a href="/blog/">{labels.emptyWritingLink}</a></>}
-          </p>
-        ) : (
-          posts.map((post, index) => {
-            const slug = post.id.replace(`${lang}/`, '').replace(/\/$/, '');
-            const minutes = Math.max(1, Math.ceil((post.body ?? '').split(/\s+/).filter(Boolean).length / 200));
-            return (
-              <article class={`py-4 position-relative${index > 0 ? ' border-top' : ''}`}>
-                <div class="d-flex flex-wrap gap-2 text-body-secondary small mb-2">
-                  <span class="badge border text-body-secondary">{post.data.category}</span>
-                  <time datetime={post.data.pubDate.toISOString()}>{post.data.pubDate.toLocaleDateString(locale, { dateStyle: 'medium' })}</time>
-                  <span aria-hidden="true">·</span><span>{minutes} {labels.minRead}</span>
-                </div>
-                <h3 class="h4 mb-2"><a class="text-body text-decoration-none stretched-link" href={`${blogBase}${slug}/`}>{post.data.title}</a></h3>
-                <p class="text-body-secondary mb-0">{post.data.description}</p>
-              </article>
-            );
-          })
-        )}
-      </div>
-    </section>
+      </section>
+
+      {/*
+        The specimen is the site eating its own cooking: these are real
+        @wpmoo/ui components rendering with the same CSS every other element
+        on the page uses, not screenshots or a mockup. They are deliberately
+        non-interactive (span.btn, not button) and the whole sample block is
+        aria-hidden, so assistive tech gets the explanatory sentence and the
+        one real link instead of a pile of meaningless controls.
+      */}
+      <aside class="col-12 col-md-4 mt-4 mt-md-0" aria-labelledby="specimen-title">
+        <div class="card card-dashed card-tilt h-100" data-tilt>
+          <div class="card-body p-3 p-lg-4 d-flex flex-column gap-4">
+            <div>
+              <p class="text-body-secondary small text-uppercase fw-semibold uppercase-tracked mb-2">{labels.specimenEyebrow}</p>
+              <h2 class="h5 mb-0" id="specimen-title">{labels.specimenTitle}</h2>
+            </div>
+
+            <div class="d-flex flex-column gap-3" aria-hidden="true">
+              <div class="d-flex flex-wrap gap-2">
+                <span class="btn btn-primary btn-sm">{labels.specimenPrimary}</span>
+                <span class="btn btn-outline-secondary btn-sm">{labels.specimenOutline}</span>
+              </div>
+              {/*
+                align-items-center, not the flex default: .badge.border is
+                2px taller than a borderless .badge, and a stretched flex
+                line would grow the shorter one to match. Because badge text
+                sits at the top of its line box, that extra height lands
+                entirely under the text and reads as lopsided padding.
+              */}
+              <div class="d-flex flex-wrap align-items-center gap-2">
+                <span class="badge text-bg-dark">{labels.specimenBadge}</span>
+                <span class="badge border text-body-secondary">{labels.specimenCategory}</span>
+              </div>
+              <div class="d-flex align-items-center gap-1">
+                <kbd>⌘</kbd><kbd>K</kbd>
+              </div>
+              <div class="progress">
+                <div class="progress-bar w-50"></div>
+              </div>
+            </div>
+
+            <p class="small text-body-secondary mb-0 mt-auto">{labels.specimenNote}</p>
+            <a class="fw-medium text-body text-decoration-none stretched-link" href="https://ui.wpmoo.org" target="_blank" rel="noopener">{labels.specimenCta}</a>
+          </div>
+        </div>
+      </aside>
+    </div>
 
   </main>
   <Footer lang={lang} />
 </Base>
+
+<script>
+  // Leans [data-tilt] cards toward the pointer. This writes nothing but two
+  // angles into custom properties -- site.scss owns the actual transform,
+  // its limits, and its easing (see .card-tilt).
+  //
+  // Guarded twice over, because a tilt is decorative: skipped entirely for
+  // coarse/hover-less pointers (a touch drag would otherwise leave the card
+  // stuck mid-lean with no pointerleave to reset it), and for anyone asking
+  // for reduced motion. Both are read live rather than cached at load, so
+  // plugging in a mouse or flipping the OS motion setting takes effect
+  // without a reload.
+  const MAX_TILT_DEG = 3;
+  const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  document.querySelectorAll<HTMLElement>('[data-tilt]').forEach((card) => {
+    const reset = () => {
+      card.style.removeProperty('--tilt-x');
+      card.style.removeProperty('--tilt-y');
+    };
+
+    card.addEventListener('pointermove', (event) => {
+      if (!finePointer.matches || reducedMotion.matches) return reset();
+      const bounds = card.getBoundingClientRect();
+      // Cursor position as -0.5..0.5 of the card, so the centre reads as 0
+      // and the transform stays symmetric regardless of the card's size.
+      const offsetX = (event.clientX - bounds.left) / bounds.width - 0.5;
+      const offsetY = (event.clientY - bounds.top) / bounds.height - 0.5;
+      // Negated on X so the edge nearest the cursor rises toward the viewer
+      // rather than dipping away from it.
+      card.style.setProperty('--tilt-x', `${(-offsetY * 2 * MAX_TILT_DEG).toFixed(2)}deg`);
+      card.style.setProperty('--tilt-y', `${(offsetX * 2 * MAX_TILT_DEG).toFixed(2)}deg`);
+    });
+
+    card.addEventListener('pointerleave', reset);
+    card.addEventListener('pointercancel', reset);
+  });
+</script>
