@@ -1,0 +1,60 @@
+---
+import Base from '../../layouts/Base.astro';
+import Header from '../layout/Header.astro';
+import Footer from '../layout/Footer.astro';
+import ProjectCard from './ProjectCard.astro';
+import { featuredProjects, type SiteLocale } from '../../data/projects';
+
+interface Props {
+  lang: SiteLocale;
+  alternates: { lang: string; href: string }[];
+}
+
+const { lang, alternates } = Astro.props;
+
+const labels = ({
+  en: {
+    metaTitle: 'Projects — Ahmet Cangir',
+    metaDescription: 'Selected products and systems: the problem, the role, the approach, and the result for each.',
+    eyebrow: 'Projects',
+    title: 'Products shaped by real constraints',
+    intro: 'Not a technology gallery: each project starts with a concrete platform or workflow problem, and stays scoped to what is publicly verifiable.',
+    problem: 'Problem', role: 'My role', result: 'Result', visit: 'Visit project', source: 'Inspect source',
+  },
+  de: {
+    metaTitle: 'Projekte — Ahmet Cangir',
+    metaDescription: 'Ausgewählte Produkte und Systeme: Problem, Rolle, Ansatz und Ergebnis für jedes Projekt.',
+    eyebrow: 'Projekte',
+    title: 'Produkte aus realen Anforderungen',
+    intro: 'Keine Technologie-Galerie: Jedes Projekt beginnt mit einem konkreten Plattform- oder Workflow-Problem und bleibt auf öffentlich nachprüfbare Fakten begrenzt.',
+    problem: 'Problem', role: 'Meine Rolle', result: 'Ergebnis', visit: 'Projekt öffnen', source: 'Quellcode ansehen',
+  },
+  tr: {
+    metaTitle: 'Projeler — Ahmet Cangir',
+    metaDescription: 'Seçili ürünler ve sistemler: her biri için problem, rol, yaklaşım ve sonuç.',
+    eyebrow: 'Projeler',
+    title: 'Gerçek kısıtlarla şekillenen ürünler',
+    intro: 'Bir teknoloji galerisi değil: her proje somut bir platform veya iş akışı problemiyle başlar ve yalnızca kamuya açık, doğrulanabilir bilgilerle sınırlı kalır.',
+    problem: 'Problem', role: 'Rolüm', result: 'Sonuç', visit: 'Projeyi aç', source: 'Kaynağı incele',
+  },
+} as const)[lang];
+---
+
+<Base title={labels.metaTitle} description={labels.metaDescription} lang={lang} alternates={alternates}>
+  <Header lang={lang} />
+  <main id="main-content" class="container site-content flex-grow-1 py-5" tabindex="-1">
+    <header class="mb-5" aria-labelledby="projects-title">
+      <p class="text-body-secondary small text-uppercase fw-semibold uppercase-tracked mb-2">{labels.eyebrow}</p>
+      <h1 class="display-6 fw-bold mb-3" id="projects-title">{labels.title}</h1>
+      <p class="lead text-body-secondary mb-0 col-12 col-lg-8">{labels.intro}</p>
+    </header>
+    <div class="row g-4">
+      {featuredProjects.map((project) => (
+        <div class="col-12 col-lg-8">
+          <ProjectCard project={project} lang={lang} labels={labels} />
+        </div>
+      ))}
+    </div>
+  </main>
+  <Footer lang={lang} />
+</Base>

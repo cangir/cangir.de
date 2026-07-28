@@ -119,7 +119,9 @@ const dateLocale = lang === 'tr' ? 'tr-TR' : 'de-DE';
           </div>
 
           <div class="d-flex flex-wrap gap-2" aria-label={labels.articleTags}>
-            {post.data.tags.map((tag: string) => <span class="badge border text-body-secondary">{tag}</span>)}
+            {post.data.tags.map((tag: string) => (
+              <a href={`/${lang}/blog/tag/${encodeURIComponent(tag)}/`} class="badge border text-body-secondary text-decoration-none">{tag}</a>
+            ))}
           </div>
     </header>
 

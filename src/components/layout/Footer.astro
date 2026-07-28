@@ -1,4 +1,6 @@
 ---
+import { t } from '../../i18n';
+
 interface Props {
   lang?: string;
 }
@@ -6,12 +8,20 @@ interface Props {
 const { lang = 'en' } = Astro.props;
 const year = new Date().getFullYear();
 const builtWith = lang === 'tr' ? 'Moo UI ile üretildi' : lang === 'de' ? 'Mit Moo UI erstellt' : 'Built with Moo UI';
+const projectsHref = lang === 'en' ? '/projects/' : `/${lang}/projects/`;
+const aboutHref = lang === 'en' ? '/about/' : `/${lang}/about/`;
 ---
 
 <footer class="mt-auto" data-site-footer>
   <div class="container site-container d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 py-4 text-body-secondary small">
     <span>&copy; {year} cangir.de</span>
     <div class="d-flex flex-wrap align-items-center gap-3">
+      <a href={projectsHref} class="text-body-secondary text-decoration-none py-1">
+        {t(lang, 'nav.projects')}
+      </a>
+      <a href={aboutHref} class="text-body-secondary text-decoration-none py-1">
+        {t(lang, 'nav.about')}
+      </a>
       <a href="https://ui.wpmoo.org" class="text-body-secondary text-decoration-none py-1" target="_blank" rel="noopener">
         {builtWith}
       </a>

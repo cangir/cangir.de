@@ -1,0 +1,60 @@
+---
+import { getEntry, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Header from '../layout/Header.astro';
+import Footer from '../layout/Footer.astro';
+
+interface Props {
+  lang: 'en' | 'de' | 'tr';
+  alternates: { lang: string; href: string }[];
+}
+
+const { lang, alternates } = Astro.props;
+
+const entry = await getEntry('pages', `${lang}/about`);
+if (!entry) {
+  throw new Error(`Missing src/content/pages/${lang}/about.md`);
+}
+const { Content } = await render(entry);
+const { title, eyebrow, description, focusLabel, focus, principlesEyebrow, principlesTitle, principles, contact, githubLabel } = entry.data;
+const metaTitle = `${title} — Ahmet Cangir`;
+---
+
+<Base title={metaTitle} description={description} lang={lang} alternates={alternates}>
+  <Header lang={lang} />
+  <main id="main-content" class="container site-content flex-grow-1 py-5" tabindex="-1">
+    <header class="mb-5" aria-labelledby="about-title">
+      <p class="text-body-secondary small text-uppercase fw-semibold uppercase-tracked mb-2">{eyebrow}</p>
+      <h1 class="display-6 fw-bold mb-3" id="about-title">{title}</h1>
+      <p class="small text-body-secondary mb-0"><strong class="text-body">{focusLabel}:</strong> {focus}</p>
+    </header>
+
+    <div class="col-12 col-lg-8 mb-5">
+      <Content />
+    </div>
+
+    <section class="py-4 mb-5" aria-labelledby="principles-title">
+      <p class="text-body-secondary small text-uppercase fw-semibold uppercase-tracked mb-2">{principlesEyebrow}</p>
+      <h2 class="h2 mb-4" id="principles-title">{principlesTitle}</h2>
+      <div class="row g-4">
+        {principles.map((principle, index) => (
+          <div class="col-12 col-md-4">
+            <div class="border-top pt-3 h-100">
+              <span class="font-monospace text-body-secondary small">0{index + 1}</span>
+              <h3 class="h5 mt-3 mb-2">{principle.title}</h3>
+              <p class="text-body-secondary mb-0">{principle.description}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section class="card p-0 gap-0 mb-4" aria-label={contact}>
+      <div class="card-body p-4 p-lg-5 d-flex flex-column flex-lg-row align-items-lg-center justify-content-lg-between gap-4">
+        <p class="mb-0">{contact}</p>
+        <a class="btn btn-primary align-self-start" href="https://github.com/cangir" target="_blank" rel="noopener noreferrer">{githubLabel}</a>
+      </div>
+    </section>
+  </main>
+  <Footer lang={lang} />
+</Base>

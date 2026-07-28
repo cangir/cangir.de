@@ -1,0 +1,194 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Header from '../layout/Header.astro';
+import Footer from '../layout/Footer.astro';
+import type { SiteLocale } from '../../data/projects';
+
+interface Props {
+  lang: SiteLocale;
+  alternates: { lang: string; href: string }[];
+}
+
+const { lang, alternates } = Astro.props;
+
+const labels = ({
+  en: {
+    metaTitle: 'Ahmet Cangir — Developer, product builder, and technical writer',
+    metaDescription: 'Server-rendered product systems, Bootstrap-native interfaces, and maintainable development workflows.',
+    eyebrow: 'Developer · Product builder · Technical writer',
+    title: 'Ahmet Cangir',
+    intro: 'I build tools for calmer development workflows — from Odoo applications to Bootstrap-native interfaces.',
+    blogCta: 'Read the blog', projectsCta: 'View projects',
+    cardsEyebrow: 'Explore', cardsTitle: 'Notes, components, and experiments', builtWithBadge: 'Built with Moo UI',
+    blogCardTitle: 'Blog', blogCardDescription: 'Implementation notes, release lessons, and the decisions behind the products.', blogCardCta: 'Read the latest notes →',
+    projectsCardTitle: 'Projects', projectsCardDescription: 'Bootstrap markup, shadcn feel — a component system for server-rendered applications.', projectsCardCta: 'View projects →',
+    githubCardTitle: 'GitHub', githubCardDescription: 'Code, experiments, and the occasional rabbit hole.', githubCardCta: 'Open GitHub profile →',
+    emptyWriting: 'No posts in this language yet.', emptyWritingLink: 'Read the English notes',
+    writingEyebrow: 'Latest writing', writingTitle: 'Notes from the work',
+    writingIntro: 'Implementation details, release lessons, and the decisions behind the products.',
+    allWriting: 'View all writing', minRead: 'min read',
+  },
+  de: {
+    metaTitle: 'Ahmet Cangir — Entwickler, Produktgestalter und technischer Autor',
+    metaDescription: 'Serverseitig gerenderte Produktsysteme, Bootstrap-native Oberflächen und wartbare Entwicklungsabläufe.',
+    eyebrow: 'Entwickler · Produktgestalter · Technischer Autor',
+    title: 'Ahmet Cangir',
+    intro: 'Ich entwickle Werkzeuge für ruhigere Entwicklungsabläufe – von Odoo-Anwendungen bis zu Bootstrap-nativen Interfaces.',
+    blogCta: 'Blog lesen', projectsCta: 'Projekte ansehen',
+    cardsEyebrow: 'Entdecken', cardsTitle: 'Notizen, Komponenten und Experimente', builtWithBadge: 'Mit Moo UI erstellt',
+    blogCardTitle: 'Blog', blogCardDescription: 'Implementierungsnotizen, Release-Lektionen und die Entscheidungen hinter den Produkten.', blogCardCta: 'Neueste Notizen lesen →',
+    projectsCardTitle: 'Projekte', projectsCardDescription: 'Bootstrap-Markup, shadcn-Gefühl – ein Komponentensystem für serverseitig gerenderte Anwendungen.', projectsCardCta: 'Projekte ansehen →',
+    githubCardTitle: 'GitHub', githubCardDescription: 'Code, Experimente und gelegentliche Abstecher.', githubCardCta: 'GitHub-Profil öffnen →',
+    emptyWriting: 'Noch keine Beiträge in dieser Sprache.', emptyWritingLink: 'Englische Notizen lesen',
+    writingEyebrow: 'Aktuelle Texte', writingTitle: 'Notizen aus der Arbeit',
+    writingIntro: 'Implementierungsdetails, Release-Lektionen und die Entscheidungen hinter den Produkten.',
+    allWriting: 'Alle Beiträge', minRead: 'Min. Lesezeit',
+  },
+  tr: {
+    metaTitle: 'Ahmet Cangir — Geliştirici, ürün üreticisi ve teknik yazar',
+    metaDescription: 'Server-rendered ürün sistemleri, Bootstrap-native arayüzler ve sürdürülebilir geliştirme akışları.',
+    eyebrow: 'Geliştirici · Ürün üreticisi · Teknik yazar',
+    title: 'Ahmet Cangir',
+    intro: 'Daha sakin geliştirme akışları için araçlar geliştiriyorum — Odoo uygulamalarından Bootstrap-native arayüzlere kadar.',
+    blogCta: 'Blogu oku', projectsCta: 'Projeleri gör',
+    cardsEyebrow: 'Keşfet', cardsTitle: 'Notlar, bileşenler ve deneyler', builtWithBadge: 'Moo UI ile üretildi',
+    blogCardTitle: 'Blog', blogCardDescription: 'Uygulama notları, release dersleri ve ürünlerin arkasındaki kararlar.', blogCardCta: 'Son notları oku →',
+    projectsCardTitle: 'Projeler', projectsCardDescription: 'Bootstrap markup, shadcn hissi — server-rendered uygulamalar için bir bileşen sistemi.', projectsCardCta: 'Projeleri gör →',
+    githubCardTitle: 'GitHub', githubCardDescription: 'Kod, deneyler ve ara sıra tavşan deliği.', githubCardCta: 'GitHub profilini aç →',
+    emptyWriting: 'Bu dilde henüz yazı yok.', emptyWritingLink: 'İngilizce notları oku',
+    writingEyebrow: 'Son yazılar', writingTitle: 'Çalışmadan notlar',
+    writingIntro: 'Uygulama ayrıntıları, release dersleri ve ürünlerin arkasındaki kararlar.',
+    allWriting: 'Tüm yazılar', minRead: 'dk. okuma',
+  },
+} as const)[lang];
+
+const blogBase = lang === 'en' ? '/blog/' : `/${lang}/blog/`;
+const projectsHref = lang === 'en' ? '/projects/' : `/${lang}/projects/`;
+const locale = lang === 'en' ? 'en-US' : lang === 'de' ? 'de-DE' : 'tr-TR';
+const posts = (await getCollection('blog', ({ id, data }) => id.startsWith(`${lang}/`) && !data.draft))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 2);
+---
+
+<Base title={labels.metaTitle} description={labels.metaDescription} lang={lang} alternates={alternates}>
+  <Header lang={lang} />
+  <main id="main-content" class="container site-content flex-grow-1 py-5" tabindex="-1">
+    <section class="row align-items-center gy-4 gy-lg-5 py-lg-5 mb-5" aria-labelledby="home-title">
+      <div class="col-12 col-lg-6 order-2 order-lg-1 d-flex justify-content-center justify-content-lg-start">
+        <div class="col-8 col-sm-6 col-lg-12">
+          <img src="/avatar.webp" alt="Ahmet Cangir" width="280" height="280" class="rounded-circle img-fluid" />
+        </div>
+      </div>
+      <div class="col-12 col-lg-6 order-1 order-lg-2">
+        <p class="text-body-secondary small text-uppercase fw-semibold uppercase-tracked mb-2">{labels.eyebrow}</p>
+        <h1 class="display-4 fw-bold mb-3" id="home-title">{labels.title}</h1>
+        <p class="lead text-body-secondary mb-4">{labels.intro}</p>
+        <div class="d-flex flex-wrap gap-2">
+          <a href={blogBase} class="btn btn-primary px-3">{labels.blogCta}</a>
+          <a href={projectsHref} class="btn btn-outline-secondary px-3">{labels.projectsCta}</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="mb-5" aria-labelledby="explore-title">
+      <div class="d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-2 mb-4">
+        <div>
+          <p class="text-body-secondary small text-uppercase fw-semibold uppercase-tracked mb-2">{labels.cardsEyebrow}</p>
+          <h2 class="h3 mb-0" id="explore-title">{labels.cardsTitle}</h2>
+        </div>
+        <span class="badge border text-body-secondary align-self-start align-self-md-auto">{labels.builtWithBadge}</span>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-12 col-md-4">
+          <article class="card h-100">
+            <div class="card-body d-flex flex-column gap-3 p-3 p-lg-4">
+              <span class="d-inline-flex align-items-center justify-content-center align-self-start rounded-3 bg-body-tertiary border p-2" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"></path>
+                </svg>
+              </span>
+              <div>
+                <h3 class="h6 mb-2">{labels.blogCardTitle}</h3>
+                <p class="text-body-secondary mb-0">{labels.blogCardDescription}</p>
+              </div>
+              <a href={blogBase} class="fw-medium text-body text-decoration-none stretched-link mt-auto">{labels.blogCardCta}</a>
+            </div>
+          </article>
+        </div>
+
+        <div class="col-12 col-md-4">
+          <article class="card h-100">
+            <div class="card-body d-flex flex-column gap-3 p-3 p-lg-4">
+              <span class="d-inline-flex align-items-center justify-content-center align-self-start rounded-3 bg-body-tertiary border p-2" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="7" height="9" x="3" y="3" rx="1"></rect><rect width="7" height="5" x="14" y="3" rx="1"></rect><rect width="7" height="9" x="14" y="12" rx="1"></rect><rect width="7" height="5" x="3" y="16" rx="1"></rect>
+                </svg>
+              </span>
+              <div>
+                <h3 class="h6 mb-2">{labels.projectsCardTitle}</h3>
+                <p class="text-body-secondary mb-0">{labels.projectsCardDescription}</p>
+              </div>
+              <a href={projectsHref} class="fw-medium text-body text-decoration-none stretched-link mt-auto">{labels.projectsCardCta}</a>
+            </div>
+          </article>
+        </div>
+
+        <div class="col-12 col-md-4">
+          <article class="card h-100">
+            <div class="card-body d-flex flex-column gap-3 p-3 p-lg-4">
+              <span class="d-inline-flex align-items-center justify-content-center align-self-start rounded-3 bg-body-tertiary border p-2" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3.3-.4 6.8-1.6 6.8-7A5.4 5.4 0 0 0 19.4 4 5 5 0 0 0 19.3.5S18.2.1 15 1.8a13.4 13.4 0 0 0-7 0C4.8.1 3.7.5 3.7.5A5 5 0 0 0 3.6 4a5.4 5.4 0 0 0-1.4 3.7c0 5.4 3.5 6.6 6.8 7A4.8 4.8 0 0 0 8 18v4"></path><path d="M8 19c-3 .9-3-1.5-4-2"></path>
+                </svg>
+              </span>
+              <div>
+                <h3 class="h6 mb-2">{labels.githubCardTitle}</h3>
+                <p class="text-body-secondary mb-0">{labels.githubCardDescription}</p>
+              </div>
+              <a href="https://github.com/cangir" class="fw-medium text-body text-decoration-none stretched-link mt-auto" target="_blank" rel="noopener">{labels.githubCardCta}</a>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="py-4 mb-5" aria-labelledby="latest-writing-title">
+      <header class="d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3 mb-3">
+        <div>
+          <p class="text-body-secondary small text-uppercase fw-semibold uppercase-tracked mb-2">{labels.writingEyebrow}</p>
+          <h2 class="h2 mb-2" id="latest-writing-title">{labels.writingTitle}</h2>
+          <p class="text-body-secondary mb-0">{labels.writingIntro}</p>
+        </div>
+        <a class="btn btn-outline-secondary btn-sm align-self-start align-self-md-auto" href={blogBase}>{labels.allWriting}</a>
+      </header>
+      <div class="d-flex flex-column">
+        {posts.length === 0 ? (
+          <p class="text-body-secondary py-4 mb-0">
+            {labels.emptyWriting}
+            {lang !== 'en' && <> <a href="/blog/">{labels.emptyWritingLink}</a></>}
+          </p>
+        ) : (
+          posts.map((post, index) => {
+            const slug = post.id.replace(`${lang}/`, '').replace(/\/$/, '');
+            const minutes = Math.max(1, Math.ceil((post.body ?? '').split(/\s+/).filter(Boolean).length / 200));
+            return (
+              <article class={`py-4 position-relative${index > 0 ? ' border-top' : ''}`}>
+                <div class="d-flex flex-wrap gap-2 text-body-secondary small mb-2">
+                  <span class="badge border text-body-secondary">{post.data.category}</span>
+                  <time datetime={post.data.pubDate.toISOString()}>{post.data.pubDate.toLocaleDateString(locale, { dateStyle: 'medium' })}</time>
+                  <span aria-hidden="true">·</span><span>{minutes} {labels.minRead}</span>
+                </div>
+                <h3 class="h4 mb-2"><a class="text-body text-decoration-none stretched-link" href={`${blogBase}${slug}/`}>{post.data.title}</a></h3>
+                <p class="text-body-secondary mb-0">{post.data.description}</p>
+              </article>
+            );
+          })
+        )}
+      </div>
+    </section>
+
+  </main>
+  <Footer lang={lang} />
+</Base>

@@ -15,4 +15,20 @@ const blog = defineCollection({
   }),
 });
 
-export const collections = { blog };
+const pages = defineCollection({
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/pages' }),
+  schema: z.object({
+    title: z.string(),
+    eyebrow: z.string(),
+    description: z.string(),
+    focusLabel: z.string(),
+    focus: z.string(),
+    principlesEyebrow: z.string(),
+    principlesTitle: z.string(),
+    principles: z.array(z.object({ title: z.string(), description: z.string() })),
+    contact: z.string(),
+    githubLabel: z.string(),
+  }),
+});
+
+export const collections = { blog, pages };

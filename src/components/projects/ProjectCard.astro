@@ -1,0 +1,46 @@
+---
+import type { PortfolioProject, SiteLocale } from '../../data/projects';
+
+interface Props {
+  project: PortfolioProject;
+  lang: SiteLocale;
+  labels: {
+    problem: string;
+    role: string;
+    result: string;
+    visit: string;
+    source: string;
+  };
+}
+
+const { project, lang, labels } = Astro.props;
+const projectCopy = project.copy[lang];
+---
+
+<article class="card h-100 p-0 gap-0">
+  <div class="card-body d-flex flex-column p-4">
+    <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
+      <div>
+        <p class="small text-body-secondary text-uppercase fw-semibold uppercase-tracked mb-1">{projectCopy.status}</p>
+        <h3 class="h4 mb-0">{projectCopy.title}</h3>
+      </div>
+      <span class="badge border text-body-secondary">{project.slug === 'moo-ui' ? 'MIT' : 'Odoo'}</span>
+    </div>
+    <p class="text-body-secondary mb-3">{projectCopy.summary}</p>
+    <div class="d-flex flex-wrap gap-2 mb-4">
+      {project.technologies.map((technology) => <span class="badge text-bg-secondary">{technology}</span>)}
+    </div>
+    <dl class="mb-4">
+      <dt class="small text-uppercase text-body-secondary mb-1">{labels.problem}</dt>
+      <dd class="mb-3">{projectCopy.problem}</dd>
+      <dt class="small text-uppercase text-body-secondary mb-1">{labels.role}</dt>
+      <dd class="mb-3">{projectCopy.role}</dd>
+      <dt class="small text-uppercase text-body-secondary mb-1">{labels.result}</dt>
+      <dd class="mb-0">{projectCopy.result}</dd>
+    </dl>
+    <div class="d-flex flex-wrap gap-2 mt-auto">
+      <a class="btn btn-primary btn-sm" href={project.links.primary} target="_blank" rel="noopener noreferrer">{labels.visit}</a>
+      <a class="btn btn-outline-secondary btn-sm" href={project.links.source} target="_blank" rel="noopener noreferrer">{labels.source}</a>
+    </div>
+  </div>
+</article>

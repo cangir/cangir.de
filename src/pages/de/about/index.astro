@@ -1,0 +1,11 @@
+---
+import AboutPage from '../../../components/about/AboutPage.astro';
+
+const alternates = [
+  { lang: 'en', href: '/about/' },
+  { lang: 'de', href: '/de/about/' },
+  { lang: 'tr', href: '/tr/about/' },
+];
+---
+
+<AboutPage lang="de" alternates={alternates} />

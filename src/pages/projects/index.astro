@@ -1,0 +1,11 @@
+---
+import ProjectsPage from '../../components/projects/ProjectsPage.astro';
+
+const alternates = [
+  { lang: 'en', href: '/projects/' },
+  { lang: 'de', href: '/de/projects/' },
+  { lang: 'tr', href: '/tr/projects/' },
+];
+---
+
+<ProjectsPage lang="en" alternates={alternates} />
