@@ -110,6 +110,20 @@ body.page-grid-bg::before {
   pointer-events: none;
 }
 
+// The grid reads var(--bs-secondary-color) through `color`/`currentColor`,
+// which Moo UI's dark theme sets to a *lighter* value than light mode
+// (rgba(222, 226, 230, 0.75) vs rgba(24, 24, 27, 0.75)) — but the same
+// element `opacity: 0.2` above, against dark mode's much darker page
+// background, brings the rendered lines close to invisible. Light mode is
+// untouched (no rule here changes it); this raises only the dark-theme
+// opacity so the grid reads at roughly the same visual weight as it
+// already does in light mode. Scoped to Bootstrap's own `data-bs-theme`
+// attribute (set on <html> by the theme toggle in Base.astro), the same
+// mechanism Moo UI itself uses to switch color-mode tokens.
+[data-bs-theme='dark'] body.page-grid-bg::before {
+  opacity: 0.5;
+}
+
 // Referencing ui.wpmoo.org's own catalog content width
 // (.moo-catalog__content { max-width: 72rem }, projects/ui/html/scss/
 // catalog/_shell.scss) as the ceiling for every cangir.de page's outer
