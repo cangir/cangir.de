@@ -41,6 +41,40 @@ $font-family-monospace: list.join('Geist Mono', $font-family-monospace, $separat
 :root {
   --#{$prefix}font-sans-serif: #{$font-family-sans-serif};
   --#{$prefix}font-monospace: #{$font-family-monospace};
+
+  // Moo UI's radius scale (0.375/0.5/0.625/0.75/2rem, i.e. 6-32px) reads
+  // softer than this site wants: with dashed hairlines and a dashed grid
+  // doing the structural work, rounded corners blunt the drawn-line
+  // character. Owner preference is a near-square 2-3px maximum. These are
+  // the same six consumption tokens moo-ui.css declares on :root and every
+  // Bootstrap component reads (--bs-card-border-radius and friends all
+  // resolve back to them), so retuning them here re-corners the whole site
+  // without touching a single component rule. --bs-border-radius-pill is
+  // deliberately left alone: a pill is an explicit shape choice, not a
+  // corner softening.
+  --#{$prefix}border-radius-sm: 0.125rem;
+  --#{$prefix}border-radius: 0.125rem;
+  --#{$prefix}border-radius-lg: 0.1875rem;
+  --#{$prefix}border-radius-xl: 0.1875rem;
+  --#{$prefix}border-radius-xxl: 0.1875rem;
+
+  // One weight for every drawn hairline on the site — the page-top grid,
+  // the article header/TOC dividers, and the dashed card outlines all read
+  // this instead of each restating the same blend. Bootstrap's own muted
+  // text token blended 20% toward transparent with color-mix, rather than
+  // `opacity` on the elements themselves (which would also fade the text
+  // and icons those rules sit on, not just the line).
+  --site-rule-color: color-mix(in srgb, var(--#{$prefix}secondary-color) 20%, transparent);
+}
+
+// --bs-secondary-color reads as a muted mid-gray that goes too dim against
+// a dark page background for hairlines this sparse. --bs-body-color
+// (#fafafa, Bootstrap's own next step up the color-mode ladder) is bright
+// enough to hold the same 20% blend rather than needing a heavier one to
+// compensate for a dim color. Overriding the shared token in one place
+// re-themes the grid, the dividers, and the card outlines together.
+[data-bs-theme='dark'] {
+  --site-rule-color: color-mix(in srgb, var(--#{$prefix}body-color) 20%, transparent);
 }
 
 // Bootstrap's own .nav-link reads --bs-nav-link-font-size (_nav.scss), but
@@ -107,7 +141,7 @@ body.page-grid-bg::before {
   right: 0;
   height: 420px;
   z-index: -1;
-  background-color: var(--#{$prefix}secondary-color);
+  background-color: var(--site-rule-color);
   -webkit-mask-image:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cpath d='M0 0H48' stroke='black' stroke-width='1' stroke-dasharray='4 3'/%3E%3Cpath d='M0 0V48' stroke='black' stroke-width='1' stroke-dasharray='4 3'/%3E%3C/svg%3E"),
     linear-gradient(to bottom, transparent, #000 160px),
@@ -122,18 +156,7 @@ body.page-grid-bg::before {
   mask-size: 48px 48px, auto, auto;
   mask-repeat: repeat, no-repeat, no-repeat;
   mask-composite: intersect;
-  opacity: 0.2;
   pointer-events: none;
-}
-
-// --bs-secondary-color (light mode's own token, used above) reads as a
-// muted mid-gray in dark mode too dim for this sparse a pattern against a
-// dark page background. --bs-body-color (#fafafa, Bootstrap's own next
-// step up the color-mode ladder from secondary-color) is bright enough to
-// keep the same opacity light mode uses, rather than needing a second,
-// heavier opacity to compensate for a dim color.
-[data-bs-theme='dark'] body.page-grid-bg::before {
-  background-color: var(--#{$prefix}body-color);
 }
 
 // Referencing ui.wpmoo.org's own catalog content width
@@ -225,12 +248,86 @@ body.page-grid-bg::before {
 // icons, not just the line.
 .divider-dashed.border-bottom {
   border-bottom-style: dashed !important;
-  border-bottom-color: color-mix(in srgb, var(--#{$prefix}secondary-color) 20%, transparent) !important;
+  border-bottom-color: var(--site-rule-color) !important;
 }
 
 .divider-dashed.border-start {
   border-left-style: dashed !important;
-  border-left-color: color-mix(in srgb, var(--#{$prefix}secondary-color) 20%, transparent) !important;
+  border-left-color: var(--site-rule-color) !important;
+}
+
+// The same dashed hairline as .divider-dashed and the page-top grid, closed
+// into a box around a card, so the site's destination cards read as drawn on
+// the same sheet as the grid behind them rather than as a separate
+// solid-bordered component.
+//
+// Unlike the single-side dividers above this needs no per-side longhand:
+// Bootstrap's .card already sets border width and color on all four sides
+// (_card.scss: `border: var(--bs-card-border-width) solid
+// var(--bs-card-border-color)`), so switching the shorthand style alone
+// cannot summon phantom sides. Bootstrap tokenizes the card's border width
+// and color but hardcodes `solid`, so style is the one part with no custom
+// property to fill — hence a named class rather than a token override.
+.card-dashed {
+  border-style: dashed;
+  border-color: var(--site-rule-color);
+  transition:
+    border-color 0.2s ease-out,
+    box-shadow 0.2s ease-out;
+}
+
+// Hover lifts the card by darkening its own hairline and adding depth,
+// rather than by moving it — the dashed outline is the motif, so
+// strengthening the line is the more honest emphasis. The stroke goes from
+// the shared 20% blend to 45% of the same base token (one step firmer, not
+// a different color), and the shadow is Bootstrap's own --bs-box-shadow
+// consumption token, so it matches every other raised surface Moo UI
+// renders. :focus-within carries the same treatment for keyboard users
+// reaching the card through its stretched link.
+.card-dashed:hover,
+.card-dashed:focus-within {
+  border-color: color-mix(in srgb, var(--#{$prefix}secondary-color) 45%, transparent);
+  box-shadow: var(--#{$prefix}box-shadow);
+}
+
+[data-bs-theme='dark'] .card-dashed:hover,
+[data-bs-theme='dark'] .card-dashed:focus-within {
+  border-color: color-mix(in srgb, var(--#{$prefix}body-color) 45%, transparent);
+}
+
+// Pointer-tracked tilt, used only on the Moo UI specimen. The card leans
+// toward the cursor as if a sheet of paper were being lifted off the grid —
+// the one place on the site where the drawn-on-paper metaphor gets to move.
+// The transform is composed entirely here from two custom properties; the
+// script only writes two numbers into --tilt-x/--tilt-y, so the motion's
+// shape, limits, and easing stay in CSS. perspective() is applied inline in
+// the transform rather than on a parent, so no wrapper element is needed.
+// The transition is short (0.12s) rather than absent: long enough to smooth
+// pointer jitter, short enough not to lag behind the cursor. It re-declares
+// the border-color/box-shadow timings from .card-dashed because this rule's
+// own `transition` shorthand would otherwise replace them.
+.card-tilt {
+  transform: perspective(40rem) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+  transition:
+    transform 0.12s ease-out,
+    border-color 0.2s ease-out,
+    box-shadow 0.2s ease-out;
+}
+
+// Respect a user's reduced-motion preference: the hover end-state still
+// applies, only the tween between states is dropped. The tilt is removed
+// outright rather than merely un-animated -- it is decorative motion, which
+// is exactly what this preference asks to be spared. The script honors the
+// same query, so it stops writing the custom properties too.
+@media (prefers-reduced-motion: reduce) {
+  .card-dashed {
+    transition: none;
+  }
+
+  .card-tilt {
+    transform: none;
+    transition: none;
+  }
 }
 
 // Markdown-rendered prose links (.article-body a) read var(--bs-link-color),
@@ -348,6 +445,43 @@ body.page-grid-bg::before {
     bottom: 100%;
     height: 4rem;
     background: linear-gradient(to top, var(--#{$prefix}tertiary-bg), transparent);
+    pointer-events: none;
+  }
+
+  // Closes the page with the same pen that opens it: one dashed hairline on
+  // --site-rule-color, the token the page-top grid and the article dividers
+  // already read. Deliberately a single rule rather than a mirrored copy of
+  // the grid -- that texture fades in from the top and falls off radially
+  // from 50% 0%, so it reads as "the sheet starts here"; repeating it at the
+  // bottom would say "begin" at the moment a reader is leaving, and on long
+  // article pages it would surface after a stretch of plain background as an
+  // unrelated second texture rather than a bookend.
+  //
+  // Drawn as ::after rather than a border-top on the footer itself: the fade
+  // above is positioned `bottom: 100%` against the padding box, so a real
+  // border would sit under the gradient's last pixel and be hidden by it.
+  // At `top: 0` this line lands on flat tertiary-bg -- the tint has already
+  // risen to full strength by then -- so it reads as a drawn edge, not a
+  // line floating inside a gradient.
+  // The line does not run edge to edge but dissolves at both ends, so it
+  // reads as a drawn stroke that ran out rather than a full-width rule
+  // butting into the viewport. A mask is what makes that possible: border
+  // colors cannot be gradients, but mask-image applies to the element's
+  // whole rendering, borders included, so a horizontal transparent-to-opaque
+  // -to-transparent ramp fades the dashes themselves. Same technique the
+  // page-top grid already uses for its own reveal and falloff.
+  // A plain CSS dashed border, the same mechanism .card-dashed and
+  // .divider-dashed use, so every drawn line in the interface shares one
+  // cadence — the browser's — rather than this one being hand-matched to the
+  // grid's SVG stroke-dasharray and drifting from its actual siblings.
+  &::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    border-top: 1px dashed var(--site-rule-color);
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 20%, #000 80%, transparent);
+    mask-image: linear-gradient(to right, transparent, #000 20%, #000 80%, transparent);
     pointer-events: none;
   }
 }
